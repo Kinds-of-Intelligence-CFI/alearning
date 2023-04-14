@@ -14,3 +14,12 @@ __pycache__/
 *.pyc
 *.vscode
 *.pytest_cache/
+.DS_Store
+animalai/animalai.egg-info/
+configs/BgeonTasks/
+configs/object_permanence/
+*.bin
+test_images/
+*.pt
+*.txt
+*.png

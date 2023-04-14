@@ -1,0 +1,60 @@
+!ArenaConfig
+arenas:
+  -1: !Arena
+    t: 150
+    items:
+      - !Item
+        name: Agent
+        positions:
+        - !Vector3 {x: 20, y: 6, z: 30}
+        rotations: [0]
+      - !Item
+        name: Wall
+        positions:
+        - !Vector3 {x: 20, y: 0, z: 30} #Starting platform.
+        - !Vector3 {x: 20, y: 0, z: 33} #Middle where posterboard located.
+        - !Vector3 {x: 20, y: 0, z: 35} #Wall behind posterboard.
+        - !Vector3 {x: 20, y: 0, z: 28} #Rear wall.
+        - !Vector3 {x: 23.5, y: 0, z: 32} #Right wall.
+        - !Vector3 {x: 16.5, y: 0, z: 32} #Left wall.
+        sizes:
+        - !Vector3 {x: 6, y: 5, z: 3}
+        - !Vector3 {x: .5, y: 5, z: 3}
+        - !Vector3 {x: 6, y: 8, z: 1}
+        - !Vector3 {x: 6, y: 8, z: 1}
+        - !Vector3 {x: 1, y: 8, z: 7.1}
+        - !Vector3 {x: 1, y: 8, z: 7.1}
+        rotations: [0,0,0,0,0,0]
+        colors:
+        - !RGB {r: 153, g: 153, b: 153}
+        - !RGB {r: 153, g: 153, b: 153}
+        - !RGB {r: 153, g: 153, b: 153}
+        - !RGB {r: 153, g: 153, b: 153}
+        - !RGB {r: 153, g: 153, b: 153}
+        - !RGB {r: 153, g: 153, b: 153}
+      - !Item
+        name: WallTransparent
+        positions:
+        - !Vector3 {x: 20, y: 5, z: 33.25}
+        sizes:
+        - !Vector3 {x: .5, y: .5, z: 2.5}
+        rotations: [0]
+      - !Item
+        name: SignPosterboard
+        positions:
+        - !Vector3 {x: 20, y: 6.5, z: 33}
+        rotations: [270]
+        sizes:
+        - !Vector3 {x: 1, y: 1, z: 1}
+        colors:
+        - !RGB {r: 153, g: 153, b: 153}
+        symbolNames:
+        - "1/1"
+      - !Item
+        name: GoodGoal 
+        positions:
+        - !Vector3 {x: 21.5, y: 0, z: 33}
+        - !Vector3 {x: 18.5, y: 0, z: 33}
+        sizes:
+        - !Vector3 {x: 2, y: 2, z: 2}
+        - !Vector3 {x: 2, y: 2, z: 2}

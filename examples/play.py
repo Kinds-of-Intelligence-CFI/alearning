@@ -1,6 +1,7 @@
 import sys
 import random
 import os
+import time
 
 from animalai.envs.environment import AnimalAIEnvironment
 
@@ -20,7 +21,8 @@ def load_config_and_play(configuration_file: str) -> None:
         file_name=env_path,
         base_port=port,
         arenas_configurations=configuration_file,
-        play=True,
+        seed=int(time.time()),
+        play=True
     )
 
     # Run the environment until signal to it is lost
