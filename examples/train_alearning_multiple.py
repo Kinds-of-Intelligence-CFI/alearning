@@ -20,6 +20,7 @@ CUT_OFF = 120
 PARTIAL_CATEGORIES = 10
 CHECKPOINT_CATEGORIES = 20
 TOTAL_CATEGORIES = 30
+WINDOW_SIZE = 80
 
 
 def save_first_frame(obs, episode):
@@ -80,7 +81,9 @@ def run_agent_autoencoder(autoencoder_file: str,
     total_episodes = 0
 
     runs_stage3 = []
-    rolling_success_rate_stage3 = []
+    total_success_rate_stage3 = []
+    window = []
+    rolling_success_rate = []
 
     total_categories = PARTIAL_CATEGORIES
     while total_episodes < TOTAL_EPISODES:
@@ -167,8 +170,9 @@ def run_agent_autoencoder(autoencoder_file: str,
                     elif reward > 0:
                         found_green = True
 
-        if found_green:
-            if total_episodes > TRAINING_EPISODES:
+        if total_episodes > TRAINING_EPISODES:
+            window.append(found_green)
+            if found_green:
                 total_green += 1
         alearner.decrease_temperature()
 
@@ -192,16 +196,27 @@ def run_agent_autoencoder(autoencoder_file: str,
         if total_episodes > TRAINING_EPISODES:
             runs_stage3.append(total_episodes - TRAINING_EPISODES)
             success_rate = total_green / (total_episodes - TRAINING_EPISODES)
-            rolling_success_rate_stage3.append(success_rate)
+            total_success_rate_stage3.append(success_rate)
             print("Success rate = %.4f" % success_rate)
+
+            window = window[-WINDOW_SIZE:]
+            rolling_success_rate.append(sum(window) / len(window))
 
     print("Success rate at stage 3 = %.4f" % (total_green / TOTAL_STAGE_3))
     env.close()
 
-    plt.plot(runs_stage3, rolling_success_rate_stage3)
+    plt.plot(runs_stage3, total_success_rate_stage3)
+    plt.title("Total success rate")
     plt.xlabel("total runs stage 3")
     plt.ylabel("success rate")
     plt.savefig("success_rate.png")
+
+    plt.clf()
+    plt.plot(runs_stage3, rolling_success_rate)
+    plt.title("Rolling success rate (window size = 80)")
+    plt.xlabel("total runs stage 3")
+    plt.ylabel("rolling success rate")
+    plt.savefig("rolling_success_rate.png")
 
 
 # Loads a random competition configuration unless a link to a config is given as an argument.
@@ -225,4 +240,3 @@ if __name__ == "__main__":
                           height=84,
                           config_file=args.config_file,
                           gpu=gpu)
-
