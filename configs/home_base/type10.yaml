@@ -1,0 +1,72 @@
+!ArenaConfig
+arenas:
+  0: !Arena
+    pass_mark: 0
+    t: 300
+    items:
+    - !Item
+      name: Agent
+      positions:
+      - !Vector3 {x: -1, y: -1, z: -1}
+    - !Item
+      name: GoodGoal 
+      positions:
+      - !Vector3 {x: -1, y: 4, z: -1}
+      - !Vector3 {x: -1, y: 4, z: -1}
+      sizes:
+      - !Vector3 {x: -1, y: -1, z: -1}
+      - !Vector3 {x: -1, y: -1, z: -1}
+    - !Item
+      name: Wall 
+      positions:
+      - !Vector3 {x: -1, y: 0, z: -1} 
+      - !Vector3 {x: -1, y: 0, z: -1} 
+      sizes:
+      - !Vector3 {x: -1, y: -1, z: -1} 
+      - !Vector3 {x: -1, y: -1, z: -1}   
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Wall #FLOOR CONFIG
+      positions:
+      - !Vector3 {x: -1, y: 0, z: -1} 
+      - !Vector3 {x: -1, y: 0, z: -1} 
+      sizes:
+      - !Vector3 {x: -1, y: .5, z: -1} 
+      - !Vector3 {x: -1, y: .5, z: -1}   
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: WallTransparent
+      positions:
+      - !Vector3 {x: -1, y: 0, z: -1} 
+      - !Vector3 {x: -1, y: 0, z: -1} 
+      sizes:
+      - !Vector3 {x: -1, y: -1, z: -1} 
+      - !Vector3 {x: -1, y: -1, z: -1}   
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: SignPosterboard
+      positions:
+      - !Vector3 {x: -1, y: -1, z: -1}
+      - !Vector3 {x: -1, y: -1, z: -1}
+      rotations: [-1,-1]
+      sizes:
+      - !Vector3 {x: -1, y: -1, z: -1}
+      - !Vector3 {x: -1, y: -1, z: -1}
+      symbolNames: [1/1,1/1]
+      colors:
+      - !RGB {r: 255, g: 255, b: 255}
+      - !RGB {r: 255, g: 255, b: 255}
+    - !Item
+      name: DeathZone
+      positions:
+      - !Vector3 {x: -1, y: -1, z: -1}
+      - !Vector3 {x: -1, y: -1, z: -1}
+      sizes:
+      - !Vector3 {x: -1, y: -1, z: -1}
+      - !Vector3 {x: -1, y: -1, z: -1}
