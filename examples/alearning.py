@@ -35,58 +35,63 @@ def run_agent_single_config(configuration_file: str) -> None:
     alearner = ALearner(totalRays) #A simple BraitenBerg Agent that heads towards food items.
     behavior = list(env.behavior_specs.keys())[0] # by default should be AnimalAI?team=0
 
-    firststep = True
-    for _episode in range(100):
-        if firststep:
-            env.step() # Need to make a first step in order to get an observation.
-            firststep = False
-        dec, term = env.get_steps(behavior)
-        done = False
-        episodeReward = 0
-        found_reward = False
-        while not done:
-            reward = None
-            if len(dec.reward) > 0:
-                episodeReward += dec.reward
-                reward = dec.reward[0] \
-                    if not math.isclose(dec.reward[0], 0, abs_tol=1e-2) else 0
-                if reward > 0:
-                    found_reward = True
-                raycasts = env.get_obs_dict(dec.obs)["rays"] # Get the raycast data
-
-            if len(term) > 0:
-                episodeReward += term.reward
-                reward = term.reward[0] \
-                    if not math.isclose(term.reward[0], 0, abs_tol=1e-2) else 0
-                if reward > 0:
-                    found_reward = True
-                if found_reward:
-                    print("found reward")
-                else:
-                    print("did not find reward")
-                    reward = PUNISHMENT
-                print(F"Episode Reward: {episodeReward}")
-                done = True
-                firststep = True
-                raycasts = env.get_obs_dict(term.obs)["rays"] # Get the raycast data
-
-            stimulus = Stimulus(alearner, alearner.listOfObjects,
-                                raycasts, reward=reward)
-
-            if done:
-                alearner.update_stimulus_values(stimulus)
-                if found_reward:
-                    alearner.double_exploit()
-                else:
-                    alearner.increase_exploit()
-                alearner.print_maps()
-                break
-            # selects action based on stimulus values
-            action = alearner.get_action(stimulus)
-            env.set_actions(behavior, action.action_tuple)
-            env.step()
+    with open("stimuli.log", "w") as fout:
+        firststep = True
+        for _episode in range(100):
+            if firststep:
+                env.step() # Need to make a first step in order to get an observation.
+                firststep = False
             dec, term = env.get_steps(behavior)
-        env.reset()
+            done = False
+            episodeReward = 0
+            found_reward = False
+            step = 0
+            while not done:
+                reward = None
+                if len(dec.reward) > 0:
+                    episodeReward += dec.reward
+                    reward = dec.reward[0] \
+                        if not math.isclose(dec.reward[0], 0, abs_tol=1e-2) else 0
+                    if reward > 0:
+                        found_reward = True
+                    raycasts = env.get_obs_dict(dec.obs)["rays"] # Get the raycast data
+
+                if len(term) > 0:
+                    episodeReward += term.reward
+                    reward = term.reward[0] \
+                        if not math.isclose(term.reward[0], 0, abs_tol=1e-2) else 0
+                    if reward > 0:
+                        found_reward = True
+                    if found_reward:
+                        print("found reward")
+                    else:
+                        print("did not find reward")
+                        reward = PUNISHMENT
+                    print(F"Episode Reward: {episodeReward}")
+                    done = True
+                    firststep = True
+                    raycasts = env.get_obs_dict(term.obs)["rays"] # Get the raycast data
+
+                stimulus = Stimulus(alearner, alearner.listOfObjects,
+                                    raycasts, reward=reward)
+                fout.write("Episode %d, step %d:\n" % (_episode+1, step+1))
+                fout.write(str(stimulus) + "\n")
+
+                step += 1
+                if done:
+                    alearner.update_stimulus_values(stimulus)
+                    if found_reward:
+                        alearner.double_exploit()
+                    else:
+                        alearner.increase_exploit()
+                    alearner.print_maps()
+                    break
+                # selects action based on stimulus values
+                action = alearner.get_action(stimulus)
+                env.set_actions(behavior, action.action_tuple)
+                env.step()
+                dec, term = env.get_steps(behavior)
+            env.reset()
 
     env.close()
     print("Environment Closed")
