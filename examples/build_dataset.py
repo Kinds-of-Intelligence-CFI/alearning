@@ -101,8 +101,10 @@ if __name__ == "__main__":
     else:
         sys.stderr.write("Wrong number of arguments provided\n")
         sys.exit(1)
-    train_configuration_file = "../configs/tests/training.yml"
-    test_configuration_file = "../configs/tests/testing.yml"
-    load_config_and_build_dataset(train_configuration_file=train_configuration_file,
-                                  test_configuration_file=test_configuration_file,
-                                  train_file=train_file, test_file=test_file)
+    train_configuration_file = "../configs/autoencoder/training.yml"
+    test_configuration_file = "../configs/autoencoder/testing.yml"
+    load_config_and_build_dataset(
+        train_configuration_file=train_configuration_file,
+        test_configuration_file=test_configuration_file,
+        train_file=train_file, test_file=test_file
+    )

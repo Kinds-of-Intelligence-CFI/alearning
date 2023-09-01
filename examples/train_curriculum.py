@@ -12,16 +12,17 @@ import argparse
 import matplotlib.pyplot as plt
 
 PUNISHMENT = -1
-PARTIAL_CATEGORIES = 10
-CHECKPOINT_CATEGORIES = 20
-TOTAL_CATEGORIES = 30
+START_CATEGORIES = 10
 WINDOW_SIZE = 80
+# SUB_DIRS = ["task_type_1_GR_HC", "task_type_2_GR_FA",
+#             "task_type_3_GR_Platform_HC", "task_type_4_GR_Platform_FA",
+#             "task_type_5_GR_Wall_HC", "task_type_6_GR_Wall_FA",
+#             "task_type_7_GR_Platform_Wall_HC",
+#             "task_type_8_GR_Platform_Wall_FA"]
 SUB_DIRS = ["task_type_1_GR_HC", "task_type_2_GR_FA",
-            "task_type_3_GR_Platform_HC", "task_type_4_GR_Platform_FA",
-            "task_type_5_GR_Wall_HC", "task_type_6_GR_Wall_FA",
-            "task_type_7_GR_Platform_Wall_HC",
-            "task_type_8_GR_Platform_Wall_FA"]
-N_TASKS = [108, 108, 1404, 1080, 2808, 2916, 32292, 57996]
+            "task_type_3_GR_Platform_HC", "task_type_4_GR_Platform_FA"]
+# N_TASKS = [108, 108, 1404, 1080, 2808, 2916, 32292, 57996]
+N_TASKS = [108, 108, 1404, 1080]
 TASK_FILE = "all_tasks.yml"
 
 
@@ -67,6 +68,7 @@ def run_agent_autoencoder(autoencoder_file: str,
         # alearner = ALearnerAE(env.action_space.n)
         alearner = ALearnerAE(7)
 
+    total_categories = START_CATEGORIES
     for i, task in enumerate(SUB_DIRS):
         config_file = os.path.join(curriculum_dir, task, "all_tasks.yml")
         env = AnimalAIEnvironment(
@@ -92,7 +94,6 @@ def run_agent_autoencoder(autoencoder_file: str,
         if i < 4:
             alearner.reset_temperature()
 
-        total_categories = PARTIAL_CATEGORIES
         while total_episodes < N_TASKS[i]:
             res = env.step(0)
             obs = res[0]
@@ -177,16 +178,10 @@ def run_agent_autoencoder(autoencoder_file: str,
                   % (total_episodes, len(all_stimuli)))
             alearner.print_max_stim_val()
 
-            if i == 0:
-                for stim in all_stimuli:
-                    stim.set_criterion(True)
+            for stim in all_stimuli:
+                stim.set_criterion(True)
                 distance_criterion = True
-                total_categories = CHECKPOINT_CATEGORIES
-            elif i == 1:
-                for stim in all_stimuli:
-                    stim.set_criterion(True)
-                distance_criterion = True
-                total_categories = TOTAL_CATEGORIES
+                total_categories += 10
 
             env.reset()
 
@@ -203,14 +198,14 @@ def run_agent_autoencoder(autoencoder_file: str,
 
         plt.plot(runs, total_success_rate)
         plt.title("Total success rate")
-        plt.xlabel("total runs stage 3")
+        plt.xlabel("total runs")
         plt.ylabel("success rate")
         plt.savefig(("plots/%s_success_rate.png") % task)
 
         plt.clf()
         plt.plot(runs, rolling_success_rate)
         plt.title("Rolling success rate (window size = 80)")
-        plt.xlabel("total runs stage 3")
+        plt.xlabel("total runs")
         plt.ylabel("rolling success rate")
         plt.savefig(("plots/%s_rolling_success_rate.png") % task)
 
