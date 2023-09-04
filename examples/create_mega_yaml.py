@@ -1,5 +1,6 @@
 import argparse
 import os
+import re
 
 
 def _get_arena_contents(directory, in_file):
@@ -9,6 +10,8 @@ def _get_arena_contents(directory, in_file):
             fin.readline()
         next_line = fin.readline()
         while next_line:
+            if re.match("\s*t: [0-9]+", next_line):
+                next_line = re.sub("[0-9]+", "500", next_line)
             content += next_line
             next_line = fin.readline()
 
@@ -19,7 +22,10 @@ def _get_arena_contents(directory, in_file):
 def create_yml(directory, out_file):
     all_tasks = []
     for filename in os.listdir(directory):
-        if os.path.isfile(os.path.join(directory, filename)):
+        if (
+                filename != "all_tasks.yml"
+                and os.path.isfile(os.path.join(directory, filename))
+        ):
             all_tasks.append(filename)
 
     with open(directory + "/" + out_file, "w") as fout:
