@@ -23,6 +23,7 @@ SUB_DIRS = ["task_type_1_GR_HC", "task_type_2_GR_FA",
             "task_type_3_GR_Platform_HC", "task_type_4_GR_Platform_FA"]
 # N_TASKS = [108, 108, 1404, 1080, 2808, 2916, 32292, 57996]
 N_TASKS = [108, 108, 1404, 1080]
+REPS = [5, 5, 1, 1]
 TASK_FILE = "all_tasks.yml"
 
 
@@ -91,99 +92,102 @@ def run_agent_autoencoder(autoencoder_file: str,
         window = []
         rolling_success_rate = []
 
-        if i < 4:
-            alearner.reset_temperature()
+        n_reps = REPS[i]
 
-        while total_episodes < N_TASKS[i]:
-            res = env.step(0)
-            obs = res[0]
-            # save_first_frame(obs, total_episodes)
-            episode_ended = False
-            found_green = False
-            done = False
-            reward = None
+        for _ in range(n_reps):
+            if i < 4:
+                alearner.reset_temperature()
 
-            # this corresponds to an episode
-            while not done:
-                obs = np.expand_dims(obs, axis=0)
-                obs = np.transpose(obs, axes=(0, 3, 1, 2))
-                if gpu:
-                    obs = (th.from_numpy(obs).to(0) - mean) / std
-                else:
-                    obs = (th.from_numpy(obs) - mean) / std
-                candidate = autoenc(obs)[0].cpu().detach().numpy()
-                added_to_category = False
-                stimulus = None
-                if not reward:
-                    if all_stimuli:
-                        min_idx = min(
-                            map(lambda t: (t[0], t[1].distance(candidate)),
-                                enumerate(all_stimuli)),
-                            key=lambda t: t[1]
-                        )[0]
+            while total_episodes < N_TASKS[i]:
+                res = env.step(0)
+                obs = res[0]
+                # save_first_frame(obs, total_episodes)
+                episode_ended = False
+                found_green = False
+                done = False
+                reward = None
+
+                # this corresponds to an episode
+                while not done:
+                    obs = np.expand_dims(obs, axis=0)
+                    obs = np.transpose(obs, axes=(0, 3, 1, 2))
+                    if gpu:
+                        obs = (th.from_numpy(obs).to(0) - mean) / std
                     else:
-                        min_idx = -1
-                    if distance_criterion:
-                        if (
-                                min_idx > 0 and
-                                all_stimuli[min_idx].add_to_cluster(candidate)
-                        ):
-                            added_to_category = True
+                        obs = (th.from_numpy(obs) - mean) / std
+                    candidate = autoenc(obs)[0].cpu().detach().numpy()
+                    added_to_category = False
+                    stimulus = None
+                    if not reward:
+                        if all_stimuli:
+                            min_idx = min(
+                                map(lambda t: (t[0], t[1].distance(candidate)),
+                                    enumerate(all_stimuli)),
+                                key=lambda t: t[1]
+                            )[0]
+                        else:
+                            min_idx = -1
+                        if distance_criterion:
+                            if (
+                                    min_idx > 0 and
+                                    all_stimuli[min_idx].add_to_cluster(candidate)
+                            ):
+                                added_to_category = True
+                                stimulus = all_stimuli[min_idx]
+                        else:
                             stimulus = all_stimuli[min_idx]
-                    else:
-                        stimulus = all_stimuli[min_idx]
-                        stimulus.add_to_cluster(candidate)
-                        added_to_category = True
+                            stimulus.add_to_cluster(candidate)
+                            added_to_category = True
 
-                if not added_to_category:
-                    new_category = StimulusCategory(
-                        alearner, reward=reward,
-                        distance_criterion=distance_criterion
-                    )
-                    new_category.add_to_cluster(candidate)
-                    stimulus = new_category
-                    if reward is None:
-                        all_stimuli.append(new_category)
-
-                if len(all_stimuli) >= total_categories:
-                    for stim in all_stimuli:
-                        stim.set_criterion(False)
-                    distance_criterion = False
-
-                if episode_ended:
-                    alearner.update_stimulus_values(stimulus)
-                    done = True
-                    total_episodes += 1
-                else:
-                    action = alearner.get_action(stimulus)
-                    res = env.step(action)
-                    obs = res[0]
-                    if not math.isclose(res[1], 0, abs_tol=1e-2):
-                        reward = res[1]
-                    else:
-                        reward = None
-                    episode_ended = res[2]
-                    if episode_ended:
+                    if not added_to_category:
+                        new_category = StimulusCategory(
+                            alearner, reward=reward,
+                            distance_criterion=distance_criterion
+                        )
+                        new_category.add_to_cluster(candidate)
+                        stimulus = new_category
                         if reward is None:
-                            reward = PUNISHMENT
-                        elif reward > 0:
-                            found_green = True
+                            all_stimuli.append(new_category)
 
-            window.append(found_green)
-            if found_green:
-                total_green += 1
-            alearner.decrease_temperature()
+                    if len(all_stimuli) >= total_categories:
+                        for stim in all_stimuli:
+                            stim.set_criterion(False)
+                        distance_criterion = False
 
-            print("Episode %d | stimuli count: %d"
-                  % (total_episodes, len(all_stimuli)))
-            alearner.print_max_stim_val()
+                    if episode_ended:
+                        alearner.update_stimulus_values(stimulus)
+                        done = True
+                        total_episodes += 1
+                    else:
+                        action = alearner.get_action(stimulus)
+                        res = env.step(action)
+                        obs = res[0]
+                        if not math.isclose(res[1], 0, abs_tol=1e-2):
+                            reward = res[1]
+                        else:
+                            reward = None
+                        episode_ended = res[2]
+                        if episode_ended:
+                            if reward is None:
+                                reward = PUNISHMENT
+                            elif reward > 0:
+                                found_green = True
+
+                window.append(found_green)
+                if found_green:
+                    total_green += 1
+                alearner.decrease_temperature()
+
+                print("Episode %d | stimuli count: %d"
+                      % (total_episodes, len(all_stimuli)))
+                alearner.print_max_stim_val()
+
+                env.reset()
 
             for stim in all_stimuli:
                 stim.set_criterion(True)
                 distance_criterion = True
                 total_categories += 10
-
-            env.reset()
 
             runs.append(total_episodes)
             success_rate = total_green / total_episodes
@@ -196,6 +200,7 @@ def run_agent_autoencoder(autoencoder_file: str,
         print("Final success rate = %.4f" % (total_green / N_TASKS[i]))
         env.close()
 
+        plt.clf()
         plt.plot(runs, total_success_rate)
         plt.title("Total success rate")
         plt.xlabel("total runs")

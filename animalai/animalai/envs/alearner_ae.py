@@ -9,7 +9,7 @@ class ALearnerAE():
     """Implements the A-learning algorithm
     Can change the number of rays but only responds to GOODGOALs, GOODGOALMULTI and BADGOAL"""
 
-    def __init__(self, n_actions, alpha_w=0.9, alpha_v=0.9, temperature=100):
+    def __init__(self, n_actions, alpha_w=0.5, alpha_v=0.5, temperature=100):
         self.alpha_w = alpha_w
         self.alpha_v = alpha_v
         self.temperature = temperature
