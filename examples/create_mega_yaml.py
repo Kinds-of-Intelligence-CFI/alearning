@@ -11,7 +11,7 @@ def _get_arena_contents(directory, in_file):
         next_line = fin.readline()
         while next_line:
             if re.match("\s*t: [0-9]+", next_line):
-                next_line = re.sub("[0-9]+", "500", next_line)
+                next_line = re.sub("[0-9]+", "1000", next_line)
             content += next_line
             next_line = fin.readline()
 
