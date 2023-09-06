@@ -99,7 +99,6 @@ def run_agent_autoencoder(autoencoder_file: str,
                 alearner.reset_temperature()
 
             n_episodes = 0
-            n_green = 0
             while n_episodes < N_TASKS[i]:
                 res = env.step(0)
                 obs = res[0]
@@ -160,6 +159,7 @@ def run_agent_autoencoder(autoencoder_file: str,
                         alearner.update_stimulus_values(stimulus)
                         done = True
                         n_episodes += 1
+                        total_episodes += 1
                     else:
                         action = alearner.get_action(stimulus)
                         res = env.step(action)
@@ -177,7 +177,7 @@ def run_agent_autoencoder(autoencoder_file: str,
 
                 window.append(found_green)
                 if found_green:
-                    n_green += 1
+                    total_green += 1
                 alearner.decrease_temperature()
 
                 print("Episode %d | stimuli count: %d"
@@ -186,8 +186,6 @@ def run_agent_autoencoder(autoencoder_file: str,
 
                 env.reset()
 
-                total_green += n_green
-                total_episodes += n_episodes
                 runs.append(total_episodes)
                 success_rate = total_green / total_episodes
                 total_success_rate.append(success_rate)
@@ -196,10 +194,10 @@ def run_agent_autoencoder(autoencoder_file: str,
                 window = window[-WINDOW_SIZE:]
                 rolling_success_rate.append(sum(window) / len(window))
 
-            for stim in all_stimuli:
-                stim.set_criterion(True)
-                distance_criterion = True
-                total_categories += 10
+        for stim in all_stimuli:
+            stim.set_criterion(True)
+            distance_criterion = True
+            total_categories += 10
 
         print("Final success rate = %.4f" % (total_green / total_episodes))
         env.close()
