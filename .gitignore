@@ -25,3 +25,4 @@ test_images/
 *.png
 *.log
 **/all_tasks.yml
+configs/basic_curriculum/task_type_1_2/
