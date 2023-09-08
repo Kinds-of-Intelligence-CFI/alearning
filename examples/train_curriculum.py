@@ -10,6 +10,7 @@ import torch as th
 import numpy as np
 import argparse
 import matplotlib.pyplot as plt
+import pickle
 
 PUNISHMENT = -1
 START_CATEGORIES = 10
@@ -19,11 +20,11 @@ WINDOW_SIZE = 80
 #             "task_type_5_GR_Wall_HC", "task_type_6_GR_Wall_FA",
 #             "task_type_7_GR_Platform_Wall_HC",
 #             "task_type_8_GR_Platform_Wall_FA"]
-SUB_DIRS = ["task_type_1_GR_HC", "task_type_2_GR_FA",
-            "task_type_3_GR_Platform_HC", "task_type_4_GR_Platform_FA"]
+SUB_DIRS = ["task_type_1_2", "task_type_3_GR_Platform_HC",
+            "task_type_4_GR_Platform_FA"]
 # N_TASKS = [108, 108, 1404, 1080, 2808, 2916, 32292, 57996]
-N_TASKS = [108, 108, 1404, 1080]
-REPS = [5, 5, 1, 1]
+N_TASKS = [216, 1404, 1080]
+REPS = [1, 1, 1]
 TASK_FILE = "all_tasks.yml"
 
 
@@ -65,9 +66,7 @@ def run_agent_autoencoder(autoencoder_file: str,
     if not os.path.exists("plots"):
         os.makedirs("plots")
 
-    if alearner is None:
-        # alearner = ALearnerAE(env.action_space.n)
-        alearner = ALearnerAE(7)
+    alearner = ALearnerAE(7)
 
     total_categories = START_CATEGORIES
     for i, task in enumerate(SUB_DIRS):
@@ -92,9 +91,17 @@ def run_agent_autoencoder(autoencoder_file: str,
         window = []
         rolling_success_rate = []
 
+        meta_data = None
+        with open(
+                os.path.join(curriculum_dir, task, "meta_data.bin"), "rb"
+        ) as fin:
+            meta_data = pickle.load(fin)
+
+        log_file = open(os.path.join(curriculum_dir, task, 'results.csv'), "w")
+
         n_reps = REPS[i]
 
-        for _ in range(n_reps):
+        for k in range(n_reps):
             if i < 4:
                 alearner.reset_temperature()
 
@@ -179,6 +186,10 @@ def run_agent_autoencoder(autoencoder_file: str,
                 if found_green:
                     total_green += 1
                 alearner.decrease_temperature()
+                if k == n_reps - 1:
+                    line = ",".join(meta_data[n_episodes - 1]) \
+                        + (",%d\n" % found_green)
+                    log_file.write(line)
 
                 print("Episode %d | stimuli count: %d"
                       % (n_episodes, len(all_stimuli)))
@@ -215,6 +226,8 @@ def run_agent_autoencoder(autoencoder_file: str,
         plt.xlabel("total runs")
         plt.ylabel("rolling success rate")
         plt.savefig(("plots/%s_rolling_success_rate.png") % task)
+
+        log_file.close()
 
 
 # Loads a random competition configuration unless a link to a config is given as an argument.
