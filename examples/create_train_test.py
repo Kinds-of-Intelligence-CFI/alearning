@@ -1,5 +1,4 @@
 import os
-import random
 
 
 def _get_arena_contents(directory, in_file):
