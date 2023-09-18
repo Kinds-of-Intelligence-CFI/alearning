@@ -208,7 +208,7 @@ def run_agent_autoencoder(autoencoder_file: str,
         for stim in all_stimuli:
             stim.set_criterion(True)
             distance_criterion = True
-            total_categories += 10
+        total_categories += 10
 
         print("Final success rate = %.4f" % (total_green / total_episodes))
         env.close()
