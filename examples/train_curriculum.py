@@ -20,11 +20,10 @@ WINDOW_SIZE = 80
 #             "task_type_5_GR_Wall_HC", "task_type_6_GR_Wall_FA",
 #             "task_type_7_GR_Platform_Wall_HC",
 #             "task_type_8_GR_Platform_Wall_FA"]
-SUB_DIRS = ["task_type_1_2", "task_type_3_GR_Platform_HC",
-            "task_type_4_GR_Platform_FA"]
+SUB_DIRS = ["task_type_1_2", "task_type_3_4"]
 # N_TASKS = [108, 108, 1404, 1080, 2808, 2916, 32292, 57996]
-N_TASKS = [216, 1404, 1080]
-REPS = [4, 1, 1]
+N_TASKS = [216, 2484]
+REPS = [4, 1]
 TASK_FILE = "all_tasks.yml"
 
 
