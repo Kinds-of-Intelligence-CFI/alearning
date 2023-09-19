@@ -15,15 +15,10 @@ import pickle
 PUNISHMENT = -1
 START_CATEGORIES = 10
 WINDOW_SIZE = 80
-# SUB_DIRS = ["task_type_1_GR_HC", "task_type_2_GR_FA",
-#             "task_type_3_GR_Platform_HC", "task_type_4_GR_Platform_FA",
-#             "task_type_5_GR_Wall_HC", "task_type_6_GR_Wall_FA",
-#             "task_type_7_GR_Platform_Wall_HC",
-#             "task_type_8_GR_Platform_Wall_FA"]
-SUB_DIRS = ["task_type_1_2", "task_type_3_4"]
-# N_TASKS = [108, 108, 1404, 1080, 2808, 2916, 32292, 57996]
-N_TASKS = [216, 2484]
-REPS = [4, 1]
+SUB_DIRS = ["task_type_1_2", "task_type_3_4",
+            "task_type_5_6", "task_type_7_8"]
+N_TASKS = [216, 2484, 2862, 3611]
+REPS = [4, 1, 1, 1]
 TASK_FILE = "all_tasks.yml"
 
 
