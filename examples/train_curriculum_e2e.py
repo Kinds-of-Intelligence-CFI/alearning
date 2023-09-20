@@ -15,8 +15,8 @@ import matplotlib.pyplot as plt
 
 PUNISHMENT = -1
 WINDOW_SIZE = 80
-TRAIN_FREQUENCY = 10
-DATASET_LIMIT = 10000
+TRAIN_FREQUENCY = 50
+DATASET_LIMIT = 1000
 NUM_FRAMES = 4
 
 SUB_DIRS = ["task_type_1_2", "task_type_3_4",
