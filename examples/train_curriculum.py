@@ -17,7 +17,7 @@ START_CATEGORIES = 10
 WINDOW_SIZE = 80
 SUB_DIRS = ["task_type_1_2", "task_type_3_4",
             "task_type_5_6", "task_type_7_8"]
-N_TASKS = [216, 2484, 2862, 3611]
+N_TASKS = [216, 2484, 2289, 2257]
 REPS = [4, 1, 1, 1]
 TASK_FILE = "all_tasks.yml"
 
