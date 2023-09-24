@@ -70,7 +70,7 @@ def run_agent_e2e(n_channels, width, height,
 
     alearner = ALearnerE2E(7, n_channels, width, height, gpu=gpu)
 
-    prev_data = []
+    # prev_data = []
 
     for i, task in enumerate(SUB_DIRS):
         config_file = os.path.join(curriculum_dir, task, TASK_FILE)
@@ -205,14 +205,14 @@ def run_agent_e2e(n_channels, width, height,
                         train_data = random.sample(data, DATASET_LIMIT)
                     else:
                         train_data = data[:]
-                    if prev_data:
-                        n_select = int(DATASET_LIMIT * PROP_OLD_DATA)
-                        if len(prev_data) >= n_select:
-                            random_selection = random.sample(prev_data,
-                                                             n_select)
-                            train_data.extend(random_selection)
-                        else:
-                            train_data.extend(prev_data)
+                    # if prev_data:
+                    #     n_select = int(DATASET_LIMIT * PROP_OLD_DATA)
+                    #     if len(prev_data) >= n_select:
+                    #         random_selection = random.sample(prev_data,
+                    #                                          n_select)
+                    #         train_data.extend(random_selection)
+                    #     else:
+                    #         train_data.extend(prev_data)
                     alearner.do_training_round(train_data)
                     alearner.do_training_round(train_data, l1_loss=False)
 
@@ -232,9 +232,9 @@ def run_agent_e2e(n_channels, width, height,
         plt.ylabel("rolling success rate")
         plt.savefig(("e2e_plots/%s_rolling_success_rate.png") % task)
 
-        n_select = int(SAVE_PREV_DATA * len(data))
-        random_selection = random.sample(data, n_select)
-        prev_data.extend(random_selection)
+        # n_select = int(SAVE_PREV_DATA * len(data))
+        # random_selection = random.sample(data, n_select)
+        # prev_data.extend(random_selection)
         log_file.close()
 
 
