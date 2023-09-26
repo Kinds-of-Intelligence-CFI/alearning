@@ -52,6 +52,7 @@ def normalise_obs(obs, mean, std, gpu=True):
 
 def run_agent_e2e(n_channels, width, height,
                   curriculum_dir,
+                  model_file=None,
                   gpu=True) -> None:
     """
     Trains a-learning model with autoencoder on a set of training files
@@ -68,7 +69,8 @@ def run_agent_e2e(n_channels, width, height,
     if not os.path.exists("e2e_plots"):
         os.makedirs("e2e_plots")
 
-    alearner = ALearnerE2E(7, n_channels, width, height, gpu=gpu)
+    alearner = ALearnerE2E(7, n_channels, width, height,
+                           gpu=gpu, model_file=model_file)
 
     # prev_data = []
 
@@ -237,6 +239,8 @@ def run_agent_e2e(n_channels, width, height,
         # prev_data.extend(random_selection)
         log_file.close()
 
+        alearner.save_model()
+
 
 # Loads a random competition configuration unless a link to a config is given as an argument.
 if __name__ == "__main__":
@@ -245,6 +249,7 @@ if __name__ == "__main__":
     )
     parser.add_argument('curriculum_dir', type=str, nargs='?',
                         default='../configs/basic_curriculum')
+    parser.add_argument('model_file', type=str, nargs='?', default='e2e.py')
     parser.add_argument('--cpu', action='store_true')
     args = parser.parse_args()
     if args.cpu:
@@ -255,4 +260,5 @@ if __name__ == "__main__":
                   width=84,
                   height=84,
                   curriculum_dir=args.curriculum_dir,
+                  model_file=args.model_file,
                   gpu=gpu)

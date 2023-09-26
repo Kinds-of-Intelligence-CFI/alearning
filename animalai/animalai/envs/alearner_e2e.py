@@ -11,6 +11,7 @@ from torch.utils.data import DataLoader
 from scipy.special import softmax
 import random
 from itertools import groupby
+import os
 
 
 def to_tensor(array):
@@ -39,7 +40,8 @@ class ALearnerE2E():
 
     def __init__(self, n_actions, in_channels,
                  in_width, in_height, gpu=True,
-                 temperature=100, discount=0.9):
+                 temperature=100, discount=0.9,
+                 model_file=None):
         self.in_channels = in_channels
         self.in_width = in_width
         self.in_height = in_height
@@ -58,12 +60,21 @@ class ALearnerE2E():
 
         self.gpu = gpu
         self.aler = ALearningModel(in_channels, in_width, in_height)
-        # self.optimiser = th.optim.SGD(self.aler.parameters(), lr=0.1,
-        #                               momentum=0.9)
-        self.optimiser = th.optim.Adam(self.aler.parameters(), lr=0.001,
-                                       weight_decay=1e-5)
         if self.gpu:
             self.aler = self.aler.to(0)
+
+        self.model_file = model_file
+        if os.path.exists(self.model_file):
+            if gpu:
+                self.aler.load_state_dict(th.load(model_file))
+            else:
+                self.aler.load_state_dict(
+                    th.load(model_file,
+                            map_location=th.device('cpu')
+                            ))
+
+        self.optimiser = th.optim.Adam(self.aler.parameters(), lr=0.001,
+                                       weight_decay=1e-5)
         # self.criterion = nn.MSELoss()
         self.criterion = nn.MSELoss(reduction='none')
 
@@ -261,3 +272,6 @@ class ALearnerE2E():
         max_sr_value = max(self.sr_values.values())
         print("Max stimulus value: %.4f" % max_stim_value)
         print("Max S-R value: %.4f" % max_sr_value)
+
+    def save_model(self):
+        th.save(self.aler.state_dict(), self.model_file)
