@@ -195,8 +195,8 @@ def run_agent_e2e(n_channels, width, height,
                 total_green += 1
             alearner.decrease_temperature()
             if k == n_reps - 1:
-                line = ",".join(meta_data[n_episodes - 1]) \
-                    + (",%d\n" % found_green)
+                line = ",".join((",%d\n" % found_green)
+                                + meta_data[n_episodes - 1])
                 log_file.write(line)
 
             print("Episode %d" % total_episodes)
