@@ -169,7 +169,7 @@ def run_agent_e2e(n_channels, width, height,
 
                     if prev_stim is not None:
                         d1 = StimulusDatapoint(img=old_obs,
-                                                reward=old_reward)
+                                               reward=old_reward)
 
                         if episode_ended:
                             d2 = StimulusDatapoint(reward=reward)
