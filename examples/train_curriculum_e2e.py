@@ -21,9 +21,9 @@ NUM_FRAMES = 4
 
 N_TASKS = {
     "task_type_1_2": 216,
-    "task_type_3_4": 2484,
-    "task_type_5_6": 2862,
-    "task_type_7_8": 3611
+    "task_type_3_4": 993,
+    "task_type_5_6": 1030,
+    "task_type_7_8": 993
 }
 REPS = {
     "task_type_1_2": 4,
@@ -80,8 +80,6 @@ def run_agent_e2e(n_channels, width, height,
     alearner = ALearnerE2E(7, n_channels, width, height,
                            gpu=gpu, model_file=model_file)
 
-    # prev_data = []
-
     components = curriculum_dir.split("/")
     if components[-1] == "":
         task = components[-2]
@@ -96,7 +94,7 @@ def run_agent_e2e(n_channels, width, height,
         play=False,
         useCamera=True,
         useRayCasts=False,
-        base_port=6000,
+        base_port=6000+random.randint(1, 1000),
         # inference=True
     )
     env = UnityToGymWrapper(env, uint8_visual=True, flatten_branched=True)
@@ -151,7 +149,7 @@ def run_agent_e2e(n_channels, width, height,
                     total_episodes += 1
                 else:
                     stim, action = alearner.get_action(normalised_obs,
-                                                        reward=reward)
+                                                       reward=reward)
                     stimuli.add(stim)
                     res = env.step(action)
                     obs = res[0]
