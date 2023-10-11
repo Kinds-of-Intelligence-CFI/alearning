@@ -32,7 +32,8 @@ TASK_FILE = "all_tasks.yml"
 
 def load_state(state_file):
     if os.path.exists(state_file):
-        state = pickle.load(state_file)
+        with open(state_file, "rb") as fin:
+            state = pickle.load(fin)
         total_categories = state["total_categories"]
         all_stimuli = state["all_stimuli"]
         alearner = state["alearner"]
@@ -51,7 +52,8 @@ def save_state(state_file, total_categories, all_stimuli, alearner):
         "alearner": alearner
     }
 
-    pickle.dump(state, state_file)
+    with open(state_file, "wb") as fout:
+        pickle.dump(state, fout)
 
 
 def run_agent_autoencoder(autoencoder_file: str,
