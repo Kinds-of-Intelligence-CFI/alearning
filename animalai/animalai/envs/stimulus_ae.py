@@ -7,7 +7,7 @@ CRITERION = 0.05
 
 class StimulusCategory():
     def __init__(self, agent, reward=None, distance_criterion=True):
-        self.id = uuid.uuid4()
+        self.id = str(uuid.uuid4())
         self.agent = agent
         self.encoded_centroid = None
         self.n_members = 0
