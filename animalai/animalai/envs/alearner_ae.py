@@ -31,7 +31,7 @@ class ALearnerAE():
     def get_action(self, stimulus) -> int:
         """Returns the action to take given the current parsed raycast observation"""
         self.prev_stim = stimulus
-        all_keys = list(map(lambda a: (self.prev_stim, a),
+        all_keys = list(map(lambda a: (self.prev_stim.id, a),
                             range(self.n_actions)))
 
         all_sr_values = np.fromiter(
@@ -68,14 +68,14 @@ class ALearnerAE():
 
         next_stim = final_stim
         for i, stim in enumerate(grouped_stimuli):
-            self.w_values[stim] += self.alpha_w * \
-                (next_stim.u_val + self.w_values[next_stim] -
-                 self.w_values[stim])
+            self.w_values[stim.id] += self.alpha_w * \
+                (next_stim.u_val + self.w_values[next_stim.id] -
+                 self.w_values[stim.id])
 
             stim, action = grouped_pairs[i][0]
-            self.sr_values[(stim, action)] += self.alpha_v * \
-                (next_stim.u_val + self.w_values[next_stim] -
-                    self.sr_values[(stim, action)])
+            self.sr_values[(stim.id, action)] += self.alpha_v * \
+                (next_stim.u_val + self.w_values[next_stim.id] -
+                    self.sr_values[(stim.id, action)])
 
             next_stim = stim
         self.trajectory = []
