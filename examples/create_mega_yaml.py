@@ -5,7 +5,7 @@ import random
 import pickle
 
 
-def _get_arena_contents(directory, in_file):
+def _get_arena_contents(directory, in_file, n_steps):
     content = ""
     with open(os.path.join(directory, in_file), "r") as fin:
         for _ in range(3):
@@ -13,7 +13,7 @@ def _get_arena_contents(directory, in_file):
         next_line = fin.readline()
         while next_line:
             if re.match("\s*t: [0-9]+", next_line):
-                next_line = re.sub("[0-9]+", "2000", next_line)
+                next_line = re.sub("[0-9]+", ("%d" % n_steps), next_line)
             content += next_line
             next_line = fin.readline()
 
@@ -22,7 +22,7 @@ def _get_arena_contents(directory, in_file):
     return content
 
 
-def create_yml(directories, out_dir, out_file, prop):
+def create_yml(directories, out_dir, out_file, prop, n_steps):
     print(prop)
     all_tasks = []
     for directory in directories:
@@ -47,7 +47,7 @@ def create_yml(directories, out_dir, out_file, prop):
         idx = 1
 
         for directory, task in all_tasks:
-            content = _get_arena_contents(directory, task)
+            content = _get_arena_contents(directory, task, n_steps)
             for _ in range(2):
                 fout.write("  %d: !Arena\n" % idx)
                 fout.write(content)
@@ -73,9 +73,11 @@ if __name__ == "__main__":
     parser.add_argument('directories', type=str, nargs='+')
     parser.add_argument('out_dir', type=str)
     parser.add_argument('prop', type=float)
+    parser.add_argument('n_steps', type=int)
     parser.add_argument('out_file', type=str, nargs='?',
                         default='all_tasks.yml')
 
     args = parser.parse_args()
 
-    create_yml(args.directories, args.out_dir, args.out_file, args.prop)
+    create_yml(args.directories, args.out_dir, args.out_file,
+               args.prop, args.n_steps)

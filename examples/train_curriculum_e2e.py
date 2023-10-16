@@ -13,11 +13,12 @@ import argparse
 import pickle
 import matplotlib.pyplot as plt
 
-PUNISHMENT = -1
+PUNISHMENT = -10
 WINDOW_SIZE = 80
 TRAIN_FREQUENCY = 50
 DATASET_LIMIT = 1000
 NUM_FRAMES = 4
+N_DATAPOINTS = 50
 
 N_TASKS = {
     "task_type_1_2": 216,
@@ -26,7 +27,7 @@ N_TASKS = {
     "task_type_7_8": 993
 }
 REPS = {
-    "task_type_1_2": 4,
+    "task_type_1_2": 5,
     "task_type_3_4": 1,
     "task_type_5_6": 1,
     "task_type_7_8": 1
@@ -188,7 +189,7 @@ def run_agent_e2e(n_channels, width, height,
             for j, (d1, action, d2) in enumerate(cand_data):
                 weight = 1 / (len(cand_data) - j)
                 extended_cand_data.append((d1, action, d2, weight))
-            data.extend(extended_cand_data)
+            data.extend(extended_cand_data[-N_DATAPOINTS:])
 
             window.append(found_green)
             if found_green:
