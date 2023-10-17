@@ -13,7 +13,7 @@ import argparse
 import pickle
 import matplotlib.pyplot as plt
 
-PUNISHMENT = -10
+PUNISHMENT = -1
 WINDOW_SIZE = 80
 TRAIN_FREQUENCY = 10
 DATASET_LIMIT = 1000
