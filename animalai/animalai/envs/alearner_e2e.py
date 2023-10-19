@@ -183,7 +183,7 @@ class ALearnerE2E():
 
         self.trajectory = []
 
-    def do_training_round(self, data, l1_loss=True):
+    def do_training_round(self, data):
         if self.use_target_value:
             aler = ALearningModel(self.in_channels,
                                   self.in_width,
@@ -232,14 +232,23 @@ class ALearnerE2E():
                 #     loss = self.criterion(sr_values,
                 #                           self.discount * (w_vals + u_vals))
 
-                if l1_loss:
-                    loss = th.mean(
-                        weights * self.criterion(w_values, w_vals + u_vals)
-                    )
-                else:
-                    loss = th.mean(
-                        weights * self.criterion(sr_values, w_vals + u_vals)
-                    )
+                # if l1_loss:
+                #     loss = th.mean(
+                #         weights * self.criterion(w_values, w_vals + u_vals)
+                #     )
+                # else:
+                #     loss = th.mean(
+                #         weights * self.criterion(sr_values, w_vals + u_vals)
+                #     )
+
+                l1 = th.mean(
+                    weights * self.criterion(w_values, w_vals + u_vals)
+                )
+
+                l2 = th.mean(
+                    weights * self.criterion(sr_values, w_vals + u_vals)
+                )
+                loss = (l1 + l2) / 2
 
                 self.optimiser.zero_grad()
                 loss.backward()

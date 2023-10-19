@@ -13,7 +13,7 @@ import argparse
 import pickle
 import matplotlib.pyplot as plt
 
-PUNISHMENT = -1
+PUNISHMENT = -5
 WINDOW_SIZE = 80
 TRAIN_FREQUENCY = 10
 DATASET_LIMIT = 1000
@@ -187,7 +187,8 @@ def run_agent_e2e(n_channels, width, height,
 
             extended_cand_data = []
             for j, (d1, action, d2) in enumerate(cand_data):
-                weight = 1 / (len(cand_data) - j)
+                # weight = 1 / (len(cand_data) - j)
+                weight = 1
                 extended_cand_data.append((d1, action, d2, weight))
             data.extend(extended_cand_data[-N_DATAPOINTS:])
 
@@ -196,8 +197,9 @@ def run_agent_e2e(n_channels, width, height,
                 total_green += 1
             alearner.decrease_temperature()
             if k == n_reps - 1:
-                line = ",".join((",%d\n" % found_green)
-                                + meta_data[n_episodes - 1])
+                line = ("%d," % found_green) + ",".join(
+                    meta_data[n_episodes - 1]
+                ) + "/n"
                 log_file.write(line)
 
             print("Episode %d" % total_episodes)
@@ -227,7 +229,7 @@ def run_agent_e2e(n_channels, width, height,
                 #     else:
                 #         train_data.extend(prev_data)
                 alearner.do_training_round(train_data)
-                alearner.do_training_round(train_data, l1_loss=False)
+                # alearner.do_training_round(train_data, l1_loss=False)
 
     print("Success rate = %.4f" % (total_green / total_episodes))
     env.close()
