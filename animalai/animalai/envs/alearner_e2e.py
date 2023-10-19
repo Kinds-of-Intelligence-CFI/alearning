@@ -55,7 +55,7 @@ class ALearnerE2E():
 
         self.n_actions = n_actions
 
-        self.n_epochs = 10
+        self.n_epochs = 20
         self.use_target_value = True
 
         self.gpu = gpu
@@ -83,7 +83,7 @@ class ALearnerE2E():
         #                               momentum=0.9)
         self.optimiser = th.optim.Adam(self.aler.parameters(), lr=0.001,
                                        weight_decay=1e-5)
-        self.n_epochs = 10
+        self.n_epochs = 20
 
     def set_target_value(self):
         self.use_target_value = True
