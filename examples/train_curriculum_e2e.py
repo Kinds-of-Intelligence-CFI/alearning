@@ -13,7 +13,7 @@ import argparse
 import pickle
 import matplotlib.pyplot as plt
 
-PUNISHMENT = -5
+PUNISHMENT = -2
 WINDOW_SIZE = 80
 TRAIN_FREQUENCY = 10
 DATASET_LIMIT = 1000
@@ -127,7 +127,7 @@ def run_agent_e2e(n_channels, width, height,
 
     n_reps = REPS[task]
     for k in range(n_reps):
-        alearner.reset_temperature()
+        # alearner.reset_temperature()
 
         n_episodes = 0
         while n_episodes < N_TASKS[task]:
