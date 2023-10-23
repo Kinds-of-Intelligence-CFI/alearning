@@ -40,13 +40,14 @@ class ALearnerE2E():
 
     def __init__(self, n_actions, in_channels,
                  in_width, in_height, gpu=True,
-                 temperature=100, discount=0.9,
+                 temperature=100, beta=2, discount=0.9,
                  model_file=None):
         self.in_channels = in_channels
         self.in_width = in_width
         self.in_height = in_height
 
         self.temperature = temperature
+        self.beta = beta
         self.initial_temperature = temperature
         self.discount = discount
 
@@ -73,16 +74,14 @@ class ALearnerE2E():
                             map_location=th.device('cpu')
                             ))
 
-        self.optimiser = th.optim.Adam(self.aler.parameters(), lr=0.001,
-                                       weight_decay=1e-5)
+        self.optimiser = th.optim.Adam(self.aler.parameters(), lr=0.001)
         # self.criterion = nn.MSELoss()
         self.criterion = nn.MSELoss(reduction='none')
 
     def reset_optimiser(self):
         # self.optimiser = th.optim.SGD(self.aler.parameters(), lr=0.1,
         #                               momentum=0.9)
-        self.optimiser = th.optim.Adam(self.aler.parameters(), lr=0.001,
-                                       weight_decay=1e-5)
+        self.optimiser = th.optim.Adam(self.aler.parameters(), lr=0.001)
         self.n_epochs = 20
 
     def set_target_value(self):
@@ -119,7 +118,7 @@ class ALearnerE2E():
             map(lambda k: self.sr_values[k], all_keys),
             dtype=float
         )
-        probs = softmax(all_sr_values / self.temperature)
+        probs = softmax(self.beta * all_sr_values)
         draw = random.random()
         action = 0
         cum_prob = 0

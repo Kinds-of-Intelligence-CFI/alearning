@@ -195,7 +195,7 @@ def run_agent_e2e(n_channels, width, height,
             window.append(found_green)
             if found_green:
                 total_green += 1
-            alearner.decrease_temperature()
+            # alearner.decrease_temperature()
             if k == n_reps - 1:
                 line = ("%d," % found_green) + ",".join(
                     meta_data[n_episodes - 1]
