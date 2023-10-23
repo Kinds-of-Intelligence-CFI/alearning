@@ -271,7 +271,7 @@ class ALearnerE2E():
 
     def exploit(self):
         self.prev_temp = self.temperature
-        self.temperature = 0.25
+        self.temperature = 1
 
     def reset_temperature(self):
         self.temperature = self.prev_temp
