@@ -40,14 +40,14 @@ class ALearnerE2E():
 
     def __init__(self, n_actions, in_channels,
                  in_width, in_height, gpu=True,
-                 temperature=100, beta=2, discount=0.9,
+                 temperature=100, discount=0.9,
                  model_file=None):
         self.in_channels = in_channels
         self.in_width = in_width
         self.in_height = in_height
 
+        self.prev_temp = temperature
         self.temperature = temperature
-        self.beta = beta
         self.initial_temperature = temperature
         self.discount = discount
 
@@ -56,7 +56,7 @@ class ALearnerE2E():
 
         self.n_actions = n_actions
 
-        self.n_epochs = 20
+        self.n_epochs = 5
         self.use_target_value = True
 
         self.gpu = gpu
@@ -82,7 +82,7 @@ class ALearnerE2E():
         # self.optimiser = th.optim.SGD(self.aler.parameters(), lr=0.1,
         #                               momentum=0.9)
         self.optimiser = th.optim.Adam(self.aler.parameters(), lr=0.001)
-        self.n_epochs = 20
+        self.n_epochs = 5
 
     def set_target_value(self):
         self.use_target_value = True
@@ -118,7 +118,7 @@ class ALearnerE2E():
             map(lambda k: self.sr_values[k], all_keys),
             dtype=float
         )
-        probs = softmax(self.beta * all_sr_values)
+        probs = softmax(all_sr_values)
         draw = random.random()
         action = 0
         cum_prob = 0
@@ -265,15 +265,16 @@ class ALearnerE2E():
 
     def decrease_temperature(self):
         if self.temperature > 10:
-            self.temperature -= 10
+            self.temperature -= 5
         else:
             self.temperature = 1
 
     def exploit(self):
-        self.temperature = 1
+        self.prev_temp = self.temperature
+        self.temperature = 0.25
 
     def reset_temperature(self):
-        self.temperature = self.initial_temperature
+        self.temperature = self.prev_temp
 
     def print_max_stim_val(self):
         max_stim_value = max(self.w_values.values())
