@@ -258,6 +258,8 @@ class ALearnerE2E():
             print("epoch %d | loss = %.4e" % (i+1, total_loss / steps))
         print("\n")
 
+        if self.n_epochs < 30:
+            self.n_epochs += 5
         # if self.n_epochs > 10:
         #     self.n_epochs -= 10
         # else:
