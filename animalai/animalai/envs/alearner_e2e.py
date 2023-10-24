@@ -46,7 +46,6 @@ class ALearnerE2E():
         self.in_width = in_width
         self.in_height = in_height
 
-        self.prev_temp = temperature
         self.temperature = temperature
         self.initial_temperature = temperature
         self.discount = discount
@@ -268,17 +267,16 @@ class ALearnerE2E():
         #     self.n_epochs = 5
 
     def decrease_temperature(self):
-        if self.temperature > 10:
+        if self.temperature > 5:
             self.temperature -= 5
         else:
             self.temperature = 1
 
     def exploit(self):
-        self.prev_temp = self.temperature
         self.temperature = 1
 
     def reset_temperature(self):
-        self.temperature = self.prev_temp
+        self.temperature = self.initial_temperature
 
     def print_max_stim_val(self):
         max_stim_value = max(self.w_values.values())
