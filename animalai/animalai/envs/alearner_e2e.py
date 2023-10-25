@@ -74,7 +74,7 @@ class ALearnerE2E():
                             ))
 
         self.optimiser = th.optim.Adam(self.aler.parameters(), lr=0.001,
-                                       weight_decay=1e-5)
+                                       weight_decay=1e-4)
         # self.criterion = nn.MSELoss()
         self.criterion = nn.MSELoss(reduction='none')
 
@@ -82,7 +82,7 @@ class ALearnerE2E():
         # self.optimiser = th.optim.SGD(self.aler.parameters(), lr=0.1,
         #                               momentum=0.9)
         self.optimiser = th.optim.Adam(self.aler.parameters(), lr=0.001,
-                                       weight_decay=1e-5)
+                                       weight_decay=1e-4)
         self.n_epochs = 5
 
     def set_target_value(self):
