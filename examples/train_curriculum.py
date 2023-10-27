@@ -210,8 +210,9 @@ def run_agent_autoencoder(autoencoder_file: str,
                 total_green += 1
             alearner.decrease_temperature()
             if k == n_reps - 1:
-                line = ",".join(meta_data[n_episodes - 1]) \
-                    + (",%d\n" % found_green)
+                line = ("%d," % found_green) + ",".join(
+                    meta_data[n_episodes - 1]
+                ) + "/n"
                 log_file.write(line)
 
             print("Episode %d | stimuli count: %d"
