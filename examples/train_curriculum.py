@@ -200,9 +200,7 @@ def run_agent_autoencoder(autoencoder_file: str,
                         reward = None
                     episode_ended = res[2]
                     if episode_ended:
-                        if reward is None:
-                            reward = PUNISHMENT
-                        elif reward > 0:
+                        if reward is not None and reward > 0:
                             found_green = True
 
             window.append(found_green)
