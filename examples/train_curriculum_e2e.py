@@ -13,7 +13,7 @@ import argparse
 import pickle
 import matplotlib.pyplot as plt
 
-PUNISHMENT = -1
+PUNISHMENT = -5
 WINDOW_SIZE = 80
 TRAIN_FREQUENCY = 10
 DATASET_LIMIT = 1000
@@ -166,7 +166,7 @@ def run_agent_e2e(n_channels, width, height,
                             reward = PUNISHMENT
                         elif reward > 0:
                             found_green = True
-                            reward = 1
+                            reward = 5
                         print("Reward = %.4f" % reward)
 
                     if prev_stim is not None:
