@@ -162,10 +162,10 @@ def run_agent_e2e(n_channels, width, height,
                         reward = None
                     episode_ended = res[2]
                     if episode_ended:
-                        if reward > 0:
+                        if reward is not None and reward > 0:
                             found_green = True
                             reward = 1
-                        print("Reward = %.4f" % reward)
+                            print("found green")
 
                     if prev_stim is not None:
                         d1 = StimulusDatapoint(img=old_obs,
