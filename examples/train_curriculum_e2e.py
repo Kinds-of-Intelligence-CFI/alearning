@@ -18,7 +18,7 @@ WINDOW_SIZE = 80
 TRAIN_FREQUENCY = 10
 DATASET_LIMIT = 1000
 NUM_FRAMES = 4
-N_DATAPOINTS = 10
+N_DATAPOINTS = 50
 
 N_TASKS = {
     "task_type_1_2": 216,
@@ -162,9 +162,7 @@ def run_agent_e2e(n_channels, width, height,
                         reward = None
                     episode_ended = res[2]
                     if episode_ended:
-                        if reward is None:
-                            reward = PUNISHMENT
-                        elif reward > 0:
+                        if reward > 0:
                             found_green = True
                             reward = 1
                         print("Reward = %.4f" % reward)
@@ -173,7 +171,7 @@ def run_agent_e2e(n_channels, width, height,
                         d1 = StimulusDatapoint(img=old_obs,
                                                reward=old_reward)
 
-                        if episode_ended:
+                        if episode_ended and reward is not None:
                             d2 = StimulusDatapoint(reward=reward)
                         else:
                             d2 = StimulusDatapoint(img=obs, reward=reward)
