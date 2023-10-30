@@ -212,7 +212,7 @@ def run_agent_autoencoder(autoencoder_file: str,
             if k == n_reps - 1:
                 line = ("%d," % found_green) + ",".join(
                     meta_data[n_episodes - 1]
-                ) + "/n"
+                ) + "\n"
                 log_file.write(line)
 
             print("Episode %d | stimuli count: %d"
