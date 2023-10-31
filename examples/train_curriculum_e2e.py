@@ -18,7 +18,7 @@ WINDOW_SIZE = 80
 TRAIN_FREQUENCY = 10
 DATASET_LIMIT = 1000
 NUM_FRAMES = 4
-N_DATAPOINTS = 50
+N_DATAPOINTS = 10
 
 N_TASKS = {
     "task_type_1_2": 216,
@@ -125,9 +125,14 @@ def run_agent_e2e(n_channels, width, height,
     old_obs = None
     old_reward = None
 
+    use_estimates = False
+
     n_reps = REPS[task]
     for k in range(n_reps):
         alearner.reset_temperature()
+
+        if k > 2:
+            use_estimates = True
 
         n_episodes = 0
         while n_episodes < N_TASKS[task]:
@@ -173,9 +178,10 @@ def run_agent_e2e(n_channels, width, height,
 
                         if episode_ended and reward is not None:
                             d2 = StimulusDatapoint(reward=reward)
-                        else:
+                            cand_data.append((d1, prev_action, d2))
+                        elif use_estimates:
                             d2 = StimulusDatapoint(img=obs, reward=reward)
-                        cand_data.append((d1, prev_action, d2))
+                            cand_data.append((d1, prev_action, d2))
                         # cand_data.append((d1, prev_action, d2, 1))
                     prev_stim = stim
                     prev_action = action
