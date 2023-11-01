@@ -55,7 +55,7 @@ class ALearnerE2E():
 
         self.n_actions = n_actions
 
-        self.n_epochs = 5
+        self.n_epochs = 10
         self.use_target_value = True
 
         self.gpu = gpu
@@ -74,14 +74,14 @@ class ALearnerE2E():
                             ))
 
         self.optimiser = th.optim.Adam(self.aler.parameters(), lr=0.001,
-                                       weight_decay=1e-4)
+                                       weight_decay=1e-3)
         # self.criterion = nn.MSELoss()
         self.criterion = nn.MSELoss(reduction='none')
 
     def reset_optimiser(self):
         self.optimiser = th.optim.Adam(self.aler.parameters(), lr=0.001,
-                                       weight_decay=1e-4)
-        self.n_epochs = 5
+                                       weight_decay=1e-3)
+        self.n_epochs = 10
 
     def set_target_value(self):
         self.use_target_value = True
@@ -256,13 +256,6 @@ class ALearnerE2E():
                 steps += 1
             print("epoch %d | loss = %.4e" % (i+1, total_loss / steps))
         print("\n")
-
-        if self.n_epochs < 30:
-            self.n_epochs += 5
-        # if self.n_epochs > 10:
-        #     self.n_epochs -= 10
-        # else:
-        #     self.n_epochs = 5
 
     def decrease_temperature(self):
         if self.temperature > 5:
