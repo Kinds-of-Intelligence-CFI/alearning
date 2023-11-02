@@ -178,10 +178,9 @@ def run_agent_e2e(n_channels, width, height,
 
                         if episode_ended and reward is not None:
                             d2 = StimulusDatapoint(reward=reward)
-                            cand_data.append((d1, prev_action, d2))
-                        elif use_estimates:
+                        else:
                             d2 = StimulusDatapoint(img=obs, reward=reward)
-                            cand_data.append((d1, prev_action, d2))
+                        cand_data.append((d1, prev_action, d2))
                         # cand_data.append((d1, prev_action, d2, 1))
                     prev_stim = stim
                     prev_action = action
@@ -190,12 +189,13 @@ def run_agent_e2e(n_channels, width, height,
 
             print("Number of different stimuli = %d" % len(stimuli))
 
-            extended_cand_data = []
-            for j, (d1, action, d2) in enumerate(cand_data):
-                # weight = 1 / (len(cand_data) - j)
-                weight = 1
-                extended_cand_data.append((d1, action, d2, weight))
-            data.extend(extended_cand_data[-N_DATAPOINTS:])
+            if episode_ended and (reward is not None or use_estimates):
+                extended_cand_data = []
+                for j, (d1, action, d2) in enumerate(cand_data):
+                    # weight = 1 / (len(cand_data) - j)
+                    weight = 1
+                    extended_cand_data.append((d1, action, d2, weight))
+                data.extend(extended_cand_data[-N_DATAPOINTS:])
 
             window.append(found_green)
             if found_green:
