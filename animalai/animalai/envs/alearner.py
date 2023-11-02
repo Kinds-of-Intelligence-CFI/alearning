@@ -10,7 +10,8 @@ class ALearner():
     """Implements the A-learning algorithm
     Can change the number of rays but only responds to GOODGOALs, GOODGOALMULTI and BADGOAL"""
 
-    def __init__(self, no_rays, alpha_w=0.5, alpha_v=0.5, beta=0.5):
+    def __init__(self, no_rays, alpha_w=0.5,
+                 alpha_v=0.5, beta=0.5, trace_size=5):
         self.no_rays = no_rays
         assert(self.no_rays % 2 == 1), "Only supports odd number of rays (but environment should only allow odd number"
 
@@ -20,6 +21,10 @@ class ALearner():
 
         self.w_values = {}
         self.sr_values = defaultdict(float)
+
+        self.trace = []
+        self.trace_size = trace_size
+        self.trace_weights = softmax(np.arange(0, 1, 1 / self.trace_size))
 
         self.listOfObjects = [RayCastObjects.GOODGOAL, RayCastObjects.GOODGOALMULTI, RayCastObjects.BADGOAL, RayCastObjects.ARENA, RayCastObjects.IMMOVABLE, RayCastObjects.MOVABLE]
         self.raycast_parser = RayCastParser(self.listOfObjects, self.no_rays)
