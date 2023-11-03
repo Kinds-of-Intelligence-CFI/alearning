@@ -74,13 +74,13 @@ class ALearnerE2E():
                             ))
 
         self.optimiser = th.optim.Adam(self.aler.parameters(), lr=0.001,
-                                       weight_decay=1e-5)
+                                       weight_decay=1e-4)
         # self.criterion = nn.MSELoss()
         self.criterion = nn.MSELoss(reduction='none')
 
     def reset_optimiser(self):
         self.optimiser = th.optim.Adam(self.aler.parameters(), lr=0.001,
-                                       weight_decay=1e-5)
+                                       weight_decay=1e-4)
         self.n_epochs = 10
 
     def set_target_value(self):
@@ -117,7 +117,7 @@ class ALearnerE2E():
             map(lambda k: self.sr_values[k], all_keys),
             dtype=float
         )
-        probs = softmax(all_sr_values)
+        probs = softmax(all_sr_values / self.temperature)
         draw = random.random()
         action = 0
         cum_prob = 0
