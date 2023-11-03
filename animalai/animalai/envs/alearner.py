@@ -43,25 +43,21 @@ class ALearner():
         self.prev_stim = stimulus
         self.trace.append(stimulus)
         self.trace = self.trace[-self.trace_size:]
-        normalised_weights = softmax(self.trace_weights[-len(self.trace):])
+        normalised_weights = np.array(softmax(self.trace_weights[-len(self.trace):]))
 
         all_actions = self.actions.allActions
-        all_keys = []
-        for stim in self.trace:
-            stim_keys = list(map(lambda a: (stim, a), all_actions))
-            all_keys.append(stim_keys)
-
-        all_sr_values = []
-        for keys in all_keys:
+        avg_sr_values = []
+        for a in all_actions:
+            stim_keys = list(map(lambda stim: (stim, a), self.trace))
             sr_values = np.fromiter(
-                map(lambda k: self.sr_values[k], keys),
+                map(lambda k: self.sr_values[k], stim_keys),
                 dtype=float
             )
-            all_sr_values.append(sr_values)
+            avg_sr_value = sum(normalised_weights * sr_values)
+            avg_sr_values.append(avg_sr_value)
+        avg_sr_values = np.array(avg_sr_values)
 
-        average_sr_values = []
-
-        probs = softmax(self.beta * all_sr_values)
+        probs = softmax(self.beta * avg_sr_values)
         draw = random.random()
         idx = 0
         cum_prob = 0
