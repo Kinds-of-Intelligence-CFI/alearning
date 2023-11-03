@@ -74,13 +74,13 @@ class ALearnerE2E():
                             ))
 
         self.optimiser = th.optim.Adam(self.aler.parameters(), lr=0.001,
-                                       weight_decay=1e-4)
+                                       weight_decay=1e-3)
         # self.criterion = nn.MSELoss()
         self.criterion = nn.MSELoss(reduction='none')
 
     def reset_optimiser(self):
         self.optimiser = th.optim.Adam(self.aler.parameters(), lr=0.001,
-                                       weight_decay=1e-4)
+                                       weight_decay=1e-3)
         self.n_epochs = 10
 
     def set_target_value(self):
