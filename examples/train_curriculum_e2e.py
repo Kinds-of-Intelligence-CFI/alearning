@@ -192,8 +192,10 @@ def run_agent_e2e(n_channels, width, height,
             if episode_ended and (reward is not None or use_estimates):
                 extended_cand_data = []
                 for j, (d1, action, d2) in enumerate(cand_data):
-                    # weight = 1 / (len(cand_data) - j)
-                    weight = 1
+                    if j == len(cand_data) - 1:
+                        weight = 1
+                    else:
+                        weight = 1 / len(cand_data)
                     extended_cand_data.append((d1, action, d2, weight))
                 data.extend(extended_cand_data[-N_DATAPOINTS:])
 
