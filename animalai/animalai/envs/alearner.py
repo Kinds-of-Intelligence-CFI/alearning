@@ -24,7 +24,7 @@ class ALearner():
 
         self.trace = []
         self.trace_size = trace_size
-        self.trace_weights = softmax(np.arange(0, 1, 1 / self.trace_size))
+        self.trace_weights = np.arange(0, 1, 1 / self.trace_size)
 
         self.listOfObjects = [RayCastObjects.GOODGOAL, RayCastObjects.GOODGOALMULTI, RayCastObjects.BADGOAL, RayCastObjects.ARENA, RayCastObjects.IMMOVABLE, RayCastObjects.MOVABLE]
         self.raycast_parser = RayCastParser(self.listOfObjects, self.no_rays)
@@ -41,13 +41,26 @@ class ALearner():
     def get_action(self, stimulus) -> AAIAction:
         """Returns the action to take given the current parsed raycast observation"""
         self.prev_stim = stimulus
-        all_actions = self.actions.allActions
-        all_keys = list(map(lambda a: (self.prev_stim, a), all_actions))
+        self.trace.append(stimulus)
+        self.trace = self.trace[-self.trace_size:]
+        normalised_weights = softmax(self.trace_weights[-len(self.trace):])
 
-        all_sr_values = np.fromiter(
-            map(lambda k: self.sr_values[k], all_keys),
-            dtype=float
-        )
+        all_actions = self.actions.allActions
+        all_keys = []
+        for stim in self.trace:
+            stim_keys = list(map(lambda a: (stim, a), all_actions))
+            all_keys.append(stim_keys)
+
+        all_sr_values = []
+        for keys in all_keys:
+            sr_values = np.fromiter(
+                map(lambda k: self.sr_values[k], keys),
+                dtype=float
+            )
+            all_sr_values.append(sr_values)
+
+        average_sr_values = []
+
         probs = softmax(self.beta * all_sr_values)
         draw = random.random()
         idx = 0
