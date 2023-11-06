@@ -129,10 +129,11 @@ def run_agent_e2e(n_channels, width, height,
 
     n_reps = REPS[task]
     for k in range(n_reps):
-        alearner.reset_temperature()
 
         if k > 1:
             use_estimates = True
+        else:
+            alearner.reset_temperature()
 
         n_episodes = 0
         while n_episodes < N_TASKS[task]:
@@ -169,7 +170,7 @@ def run_agent_e2e(n_channels, width, height,
                     if episode_ended:
                         if reward is not None and reward > 0:
                             found_green = True
-                            reward = 1
+                            reward = 2
                             print("found green")
 
                     if prev_stim is not None:
@@ -199,7 +200,7 @@ def run_agent_e2e(n_channels, width, height,
             window.append(found_green)
             if found_green:
                 total_green += 1
-                # alearner.exploit()
+                alearner.exploit()
             alearner.decrease_temperature()
             if k == n_reps - 1:
                 line = ("%d," % found_green) + ",".join(
