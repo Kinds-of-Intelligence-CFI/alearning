@@ -16,9 +16,9 @@ import matplotlib.pyplot as plt
 PUNISHMENT = -1
 WINDOW_SIZE = 80
 TRAIN_FREQUENCY = 10
-DATASET_LIMIT = 1000
+DATASET_LIMIT = 10000
 NUM_FRAMES = 4
-N_DATAPOINTS = 10
+N_DATAPOINTS = 50
 
 N_TASKS = {
     "task_type_1_2": 216,
@@ -131,7 +131,7 @@ def run_agent_e2e(n_channels, width, height,
     for k in range(n_reps):
         alearner.reset_temperature()
 
-        if k > 2:
+        if k > 1:
             use_estimates = True
 
         n_episodes = 0
@@ -191,11 +191,8 @@ def run_agent_e2e(n_channels, width, height,
 
             if episode_ended and (reward is not None or use_estimates):
                 extended_cand_data = []
-                for j, (d1, action, d2) in enumerate(cand_data):
-                    if j == len(cand_data) - 1:
-                        weight = 1
-                    else:
-                        weight = 1 / len(cand_data)
+                for d1, action, d2 in cand_data:
+                    weight = 1
                     extended_cand_data.append((d1, action, d2, weight))
                 data.extend(extended_cand_data[-N_DATAPOINTS:])
 

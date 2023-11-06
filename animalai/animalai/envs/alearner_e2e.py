@@ -74,13 +74,13 @@ class ALearnerE2E():
                             ))
 
         self.optimiser = th.optim.Adam(self.aler.parameters(), lr=0.001,
-                                       weight_decay=1e-3)
+                                       weight_decay=1e-4)
         # self.criterion = nn.MSELoss()
         self.criterion = nn.MSELoss(reduction='none')
 
     def reset_optimiser(self):
         self.optimiser = th.optim.Adam(self.aler.parameters(), lr=0.001,
-                                       weight_decay=1e-3)
+                                       weight_decay=1e-4)
         self.n_epochs = 10
 
     def set_target_value(self):
@@ -258,8 +258,8 @@ class ALearnerE2E():
         print("\n")
 
     def decrease_temperature(self):
-        if self.temperature > 5:
-            self.temperature -= 5
+        if self.temperature > 10:
+            self.temperature -= 10
         else:
             self.temperature = 1
 
