@@ -9,8 +9,8 @@ PADDING = 1
 DROPOUT = 0.1
 N_CHANNELS = 512
 N_HIDDEN_FEATURES = 2048
-N_STIMULI = 20
-# OUTPUT_SIZE = 20
+# N_STIMULI = 20
+OUTPUT_SIZE = 128
 N_ACTIONS = 7
 
 
@@ -109,14 +109,14 @@ class ALearningModel(nn.Module):
                          stride=STRIDE, padding=(0, PADDING, PADDING))
         )
 
-        self.softmax_layer = nn.Sequential(
-            nn.Linear(N_HIDDEN_FEATURES, N_STIMULI),
-            nn.LogSoftmax(dim=1)
-        )
-        # self.stimulus_output = nn.Sequential(
-        #     nn.Linear(N_HIDDEN_FEATURES, OUTPUT_SIZE),
-        #     nn.Tanh()
+        # self.softmax_layer = nn.Sequential(
+        #     nn.Linear(N_HIDDEN_FEATURES, N_STIMULI),
+        #     nn.LogSoftmax(dim=1)
         # )
+        self.stimulus_output = nn.Sequential(
+            nn.Linear(N_HIDDEN_FEATURES, OUTPUT_SIZE),
+            nn.Tanh()
+        )
 
         # self.lhs = nn.Sequential(
         #     # nn.Linear(N_STIMULI, N_STIMULI),
@@ -126,7 +126,8 @@ class ALearningModel(nn.Module):
         #     nn.Linear(N_STIMULI, 1)
         #     # nn.Linear(OUTPUT_SIZE, 1)
         # )
-        self.lhs = nn.Linear(N_STIMULI, 1)
+        # self.lhs = nn.Linear(N_STIMULI, 1)
+        self.lhs = nn.Linear(OUTPUT_SIZE, 1)
 
         # self.rhs = nn.Sequential(
         #     # nn.Linear(N_STIMULI + N_ACTIONS, N_STIMULI + N_ACTIONS),
@@ -136,7 +137,8 @@ class ALearningModel(nn.Module):
         #     nn.Linear(N_STIMULI + N_ACTIONS, 1)
         #     # nn.Linear(OUTPUT_SIZE + N_ACTIONS, 1)
         # )
-        self.rhs = nn.Linear(N_STIMULI + N_ACTIONS, 1)
+        # self.rhs = nn.Linear(N_STIMULI + N_ACTIONS, 1)
+        self.rhs = nn.Linear(OUTPUT_SIZE + N_ACTIONS, 1)
 
     def forward(self, *args, **kwds):
         if len(args) == 1:
@@ -144,8 +146,8 @@ class ALearningModel(nn.Module):
             encoded = self.visual_processor(img)
             encoded = th.reshape(encoded, (encoded.shape[0], -1))
 
-            stimulus = F.gumbel_softmax(self.softmax_layer(encoded))
-            # stimulus = self.stimulus_output(encoded)
+            # stimulus = F.gumbel_softmax(self.softmax_layer(encoded))
+            stimulus = self.stimulus_output(encoded)
             return stimulus
         elif len(args) == 0 and len(kwds) >= 1:
             stimulus = kwds["stimulus"]
