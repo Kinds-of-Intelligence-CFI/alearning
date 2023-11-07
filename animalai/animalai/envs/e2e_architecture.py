@@ -14,10 +14,10 @@ N_STIMULI = 20
 N_ACTIONS = 7
 
 
-class ResBlock(nn.Module):
+class ResBlock3D(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size=KERNEL_SIZE,
                  stride=STRIDE, padding=PADDING, dropout=DROPOUT):
-        super(ResBlock, self).__init__()
+        super(ResBlock3D, self).__init__()
         self.in_channels = in_channels
         self.out_channels = out_channels
         self.kernel_size = kernel_size
@@ -25,17 +25,17 @@ class ResBlock(nn.Module):
         self.padding = padding
         self.dropout = dropout
 
-        self.bn1 = nn.BatchNorm2d(in_channels)
+        self.bn1 = nn.BatchNorm3d(in_channels)
         self.relu = nn.ReLU()
-        self.conv1 = nn.Conv2d(in_channels, out_channels,
+        self.conv1 = nn.Conv3d(in_channels, out_channels,
                                kernel_size, stride, padding)
-        self.bn2 = nn.BatchNorm2d(out_channels)
-        self.conv2 = nn.Conv2d(out_channels, out_channels,
+        self.bn2 = nn.BatchNorm3d(out_channels)
+        self.conv2 = nn.Conv3d(out_channels, out_channels,
                                kernel_size, 1, padding)
-        self.dropout = nn.Dropout2d(p=self.dropout)
+        self.dropout = nn.Dropout3d(p=self.dropout)
 
         if out_channels != in_channels or stride > 1:
-            self.conv_in = nn.Conv2d(in_channels, out_channels, 1, stride, 0)
+            self.conv_in = nn.Conv3d(in_channels, out_channels, 1, stride, 0)
         else:
             self.conv_in = None
 
@@ -70,43 +70,44 @@ class ALearningModel(nn.Module):
         self.in_width = in_width
         self.in_height = in_height
 
+        # self.visual_processor = nn.Sequential(
+        #     nn.BatchNorm3d(self.in_channels),
+        #     nn.ReLU(),
+        #     nn.Conv3d(self.in_channels, N_CHANNELS,
+        #               KERNEL_SIZE, STRIDE, PADDING),
+        #     nn.BatchNorm3d(N_CHANNELS),
+        #     nn.ReLU(),
+        #     nn.Conv3d(N_CHANNELS, N_CHANNELS,
+        #               KERNEL_SIZE, STRIDE, PADDING),
+        #     nn.BatchNorm3d(N_CHANNELS),
+        #     nn.ReLU(),
+        #     nn.Conv3d(N_CHANNELS, N_CHANNELS,
+        #               KERNEL_SIZE, STRIDE, PADDING),
+        #     nn.BatchNorm3d(N_CHANNELS),
+        #     nn.ReLU(),
+        #     nn.Conv3d(N_CHANNELS, N_CHANNELS,
+        #               KERNEL_SIZE, STRIDE, PADDING),
+        #     nn.BatchNorm3d(N_CHANNELS),
+        #     nn.ReLU(),
+        #     nn.Conv3d(N_CHANNELS, N_CHANNELS,
+        #               KERNEL_SIZE, STRIDE, PADDING),
+        #     nn.BatchNorm3d(N_CHANNELS),
+        #     nn.ReLU(),
+        #     nn.AvgPool3d((1, KERNEL_SIZE, KERNEL_SIZE),
+        #                  stride=STRIDE, padding=(0, PADDING, PADDING))
+        # )
+
         self.visual_processor = nn.Sequential(
-            nn.BatchNorm3d(self.in_channels),
-            nn.ReLU(),
-            nn.Conv3d(self.in_channels, N_CHANNELS,
-                      KERNEL_SIZE, STRIDE, PADDING),
-            nn.BatchNorm3d(N_CHANNELS),
-            nn.ReLU(),
-            nn.Conv3d(N_CHANNELS, N_CHANNELS,
-                      KERNEL_SIZE, STRIDE, PADDING),
-            nn.BatchNorm3d(N_CHANNELS),
-            nn.ReLU(),
-            nn.Conv3d(N_CHANNELS, N_CHANNELS,
-                      KERNEL_SIZE, STRIDE, PADDING),
-            nn.BatchNorm3d(N_CHANNELS),
-            nn.ReLU(),
-            nn.Conv3d(N_CHANNELS, N_CHANNELS,
-                      KERNEL_SIZE, STRIDE, PADDING),
-            nn.BatchNorm3d(N_CHANNELS),
-            nn.ReLU(),
-            nn.Conv3d(N_CHANNELS, N_CHANNELS,
-                      KERNEL_SIZE, STRIDE, PADDING),
+            ResBlock3D(self.in_channels, N_CHANNELS),
+            ResBlock3D(N_CHANNELS, N_CHANNELS),
+            ResBlock3D(N_CHANNELS, N_CHANNELS),
+            ResBlock3D(N_CHANNELS, N_CHANNELS),
+            ResBlock3D(N_CHANNELS, N_CHANNELS),
             nn.BatchNorm3d(N_CHANNELS),
             nn.ReLU(),
             nn.AvgPool3d((1, KERNEL_SIZE, KERNEL_SIZE),
                          stride=STRIDE, padding=(0, PADDING, PADDING))
         )
-
-        # self.visual_processor = nn.Sequential(
-        #     ResBlock(self.in_channels, N_CHANNELS),
-        #     ResBlock(N_CHANNELS, N_CHANNELS),
-        #     ResBlock(N_CHANNELS, N_CHANNELS),
-        #     ResBlock(N_CHANNELS, N_CHANNELS),
-        #     ResBlock(N_CHANNELS, N_CHANNELS),
-        #     nn.BatchNorm2d(N_CHANNELS),
-        #     nn.ReLU(),
-        #     nn.AvgPool2d(KERNEL_SIZE, stride=STRIDE, padding=PADDING)
-        # )
 
         self.softmax_layer = nn.Sequential(
             nn.Linear(N_HIDDEN_FEATURES, N_STIMULI),
