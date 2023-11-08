@@ -3,11 +3,11 @@ import torch as th
 class StimulusE2E():
     def __init__(self, stimulus, reward=None):
         self.stimulus = stimulus
-        # max_idx = th.argmax(stimulus.detach().clone().cpu(), 1, keepdim=True)
-        # self.onehot = th.zeros(stimulus.shape)
-        # self.onehot.scatter_(1, max_idx, 1)
-        # self.onehot = self.onehot[0]
-        self.onehot = (stimulus.detach().clone() >= 0).int()[0]
+        max_idx = th.argmax(stimulus.detach().clone().cpu(), 1, keepdim=True)
+        self.onehot = th.zeros(stimulus.shape)
+        self.onehot.scatter_(1, max_idx, 1)
+        self.onehot = self.onehot[0]
+        # self.onehot = (stimulus.detach().clone() >= 0).int()[0]
         self.reward = reward
 
         # unconditioned value is assumed to be constant
