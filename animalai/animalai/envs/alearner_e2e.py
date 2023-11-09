@@ -198,7 +198,7 @@ class ALearnerE2E():
         dataset = E2EDataset(data, aler, self.n_actions, gpu=self.gpu,
                              train_transform=transforms.Compose([
                                  to_tensor,
-                                 transforms.RandomCrop(32, padding=4,
+                                 transforms.RandomCrop(84, padding=10,
                                                        padding_mode='reflect'),
                                  transforms.RandomVerticalFlip(),
                                  Normalise((0.6282, 0.6240, 0.5943),
