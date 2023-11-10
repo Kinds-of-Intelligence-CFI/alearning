@@ -18,7 +18,7 @@ WINDOW_SIZE = 80
 TRAIN_FREQUENCY = 10
 DATASET_LIMIT = 10000
 NUM_FRAMES = 4
-N_DATAPOINTS = 50
+N_DATAPOINTS = 2
 
 N_TASKS = {
     "task_type_1_2": 216,
@@ -126,6 +126,7 @@ def run_agent_e2e(n_channels, width, height,
     old_reward = None
 
     use_estimates = False
+    n_datapoints = N_DATAPOINTS
 
     n_reps = REPS[task]
     for k in range(n_reps):
@@ -195,7 +196,7 @@ def run_agent_e2e(n_channels, width, height,
                 for d1, action, d2 in cand_data:
                     weight = 1
                     extended_cand_data.append((d1, action, d2, weight))
-                data.extend(extended_cand_data[-N_DATAPOINTS:])
+                data.extend(extended_cand_data[-n_datapoints:])
 
             window.append(found_green)
             if found_green:
@@ -235,6 +236,7 @@ def run_agent_e2e(n_channels, width, height,
                 #     else:
                 #         train_data.extend(prev_data)
                 alearner.do_training_round(train_data)
+                n_datapoints += 5
                 # alearner.do_training_round(train_data, l1_loss=False)
 
     print("Success rate = %.4f" % (total_green / total_episodes))
