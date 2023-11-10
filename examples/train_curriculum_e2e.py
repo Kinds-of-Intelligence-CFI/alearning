@@ -236,7 +236,7 @@ def run_agent_e2e(n_channels, width, height,
                 #     else:
                 #         train_data.extend(prev_data)
                 alearner.do_training_round(train_data)
-                n_datapoints += 5
+                n_datapoints += 1
                 # alearner.do_training_round(train_data, l1_loss=False)
 
     print("Success rate = %.4f" % (total_green / total_episodes))
