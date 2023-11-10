@@ -55,7 +55,7 @@ class ALearnerE2E():
 
         self.n_actions = n_actions
 
-        self.n_epochs = 10
+        self.n_epochs = 100
         self.use_target_value = True
 
         self.gpu = gpu
