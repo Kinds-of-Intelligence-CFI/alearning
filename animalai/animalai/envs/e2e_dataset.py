@@ -46,12 +46,33 @@ class E2EDataset(Dataset):
             img = self.train_transform(img)
 
         weight = th.tensor(sample[3]).float()
+
+        if sample[4] is not None:
+            U_val = th.tensor(sample[4].u_val).float()
+            img_last = sample[4].img
+            if img_last is not None:
+                with th.no_grad():
+                    if self.test_transform:
+                        img_last = self.test_transform(img_last)
+                    img_last = img_last[None, :]
+                    if self.gpu:
+                        img_last = img_last.to(0)
+                    stim = self.aler(img_last)
+                    W_val = self.aler(stimulus=stim)[0][0]
+            else:
+                W_val = th.tensor([0])
+        else:
+            U_val = th.tensor([0])
+            W_val = th.tensor([0])
+
         if self.gpu:
             img = img.to(0)
             action = action.to(0)
             w_val = w_val.to(0)
             u_val = u_val.to(0)
             weight = weight.to(0)
+            W_val = W_val.to(0)
+            U_val = U_val.to(0)
 
-        return img, action, w_val, u_val, weight
+        return img, action, w_val, u_val, weight, W_val, U_val
         # return img, action, w_val, u_val

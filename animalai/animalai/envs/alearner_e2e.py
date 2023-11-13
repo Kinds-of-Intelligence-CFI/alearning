@@ -40,7 +40,7 @@ class ALearnerE2E():
 
     def __init__(self, n_actions, in_channels,
                  in_width, in_height, gpu=True,
-                 temperature=100, discount=0.9,
+                 temperature=100, discount=0.8,
                  model_file=None):
         self.in_channels = in_channels
         self.in_width = in_width
@@ -215,7 +215,8 @@ class ALearnerE2E():
         for i in range(self.n_epochs):
             total_loss = 0
             steps = 0
-            for imgs, actions, w_vals, u_vals, weights in iter(loader):
+            for (imgs, actions, w_vals, u_vals,
+                 weights, W_vals, U_vals) in iter(loader):
             # for imgs, actions, w_vals, u_vals in iter(loader):
                 stimuli = self.aler(imgs)
                 w_values, sr_values = self.aler(stimulus=stimuli,
@@ -245,11 +246,15 @@ class ALearnerE2E():
                 #     )
 
                 l1 = th.mean(
-                    weights * self.criterion(w_values, w_vals + u_vals)
+                    weights * self.criterion(w_values, w_vals + u_vals
+                                             + self.discount *
+                                             (W_vals + U_vals))
                 )
 
                 l2 = th.mean(
-                    weights * self.criterion(sr_values, w_vals + u_vals)
+                    weights * self.criterion(sr_values, w_vals + u_vals
+                                             + self.discount *
+                                             (W_vals + U_vals))
                 )
                 loss = (l1 + l2) / 2
 

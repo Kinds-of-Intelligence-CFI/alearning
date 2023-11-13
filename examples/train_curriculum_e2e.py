@@ -149,6 +149,7 @@ def run_agent_e2e(n_channels, width, height,
             stimuli = set()
 
             # this corresponds to an episode
+            last_point = None
             while not done:
                 if episode_ended:
                     done = True
@@ -182,6 +183,7 @@ def run_agent_e2e(n_channels, width, height,
                         else:
                             d2 = StimulusDatapoint(img=obs, reward=reward)
                         cand_data.append((d1, prev_action, d2))
+                        last_point = d2
                         # cand_data.append((d1, prev_action, d2, 1))
                     prev_stim = stim
                     prev_action = action
@@ -192,9 +194,12 @@ def run_agent_e2e(n_channels, width, height,
 
             if episode_ended and (reward is not None or use_estimates):
                 extended_cand_data = []
-                for d1, action, d2 in cand_data:
+                for i, (d1, action, d2) in enumerate(cand_data):
                     weight = 1
-                    extended_cand_data.append((d1, action, d2, weight))
+                    if i == len(cand_data) - 1:
+                        last_point = None
+                    extended_cand_data.append((d1, action, d2,
+                                               weight, last_point))
                 data.extend(extended_cand_data[-N_DATAPOINTS:])
 
             window.append(found_green)
@@ -235,7 +240,6 @@ def run_agent_e2e(n_channels, width, height,
                 #     else:
                 #         train_data.extend(prev_data)
                 alearner.do_training_round(train_data)
-                alearner.reset_optimiser()
                 # alearner.do_training_round(train_data, l1_loss=False)
 
     print("Success rate = %.4f" % (total_green / total_episodes))
