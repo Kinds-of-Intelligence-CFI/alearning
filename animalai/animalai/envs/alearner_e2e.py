@@ -40,7 +40,7 @@ class ALearnerE2E():
 
     def __init__(self, n_actions, in_channels,
                  in_width, in_height, gpu=True,
-                 temperature=100, discount=0.8,
+                 temperature=100, discount=0.5,
                  model_file=None):
         self.in_channels = in_channels
         self.in_width = in_width
@@ -74,7 +74,7 @@ class ALearnerE2E():
                             ))
 
         self.optimiser = th.optim.Adam(self.aler.parameters(), lr=0.001,
-                                       weight_decay=1e-5)
+                                       weight_decay=1e-3)
         # self.optimiser = th.optim.SGD(self.aler.parameters(), lr=0.01,
         #                               momentum=0.9, nesterov=True)
         # self.criterion = nn.MSELoss()
@@ -82,7 +82,7 @@ class ALearnerE2E():
 
     def reset_optimiser(self):
         self.optimiser = th.optim.Adam(self.aler.parameters(), lr=0.001,
-                                       weight_decay=1e-5)
+                                       weight_decay=1e-3)
         # self.optimiser = th.optim.SGD(self.aler.parameters(), lr=0.01,
         #                               momentum=0.9, nesterov=True)
         self.n_epochs = 10

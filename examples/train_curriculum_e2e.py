@@ -171,7 +171,7 @@ def run_agent_e2e(n_channels, width, height,
                     if episode_ended:
                         if reward is not None and reward > 0:
                             found_green = True
-                            reward = 2
+                            reward = 1
                             print("found green")
 
                     if prev_stim is not None:
