@@ -111,6 +111,7 @@ class ALearningModel(nn.Module):
 
         self.softmax_layer = nn.Sequential(
             nn.Linear(N_HIDDEN_FEATURES, N_STIMULI),
+            nn.LayerNorm(N_STIMULI),
             nn.LogSoftmax(dim=1)
         )
         # self.stimulus_output = nn.Sequential(
