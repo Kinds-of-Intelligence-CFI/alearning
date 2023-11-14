@@ -48,7 +48,7 @@ class E2EDataset(Dataset):
         weight = th.tensor(sample[3]).float()
 
         if sample[4] is not None:
-            U_val = th.tensor(sample[4].u_val).float()
+            U_val = th.tensor([sample[4].u_val]).float()
             img_last = sample[4].img
             if img_last is not None:
                 with th.no_grad():
