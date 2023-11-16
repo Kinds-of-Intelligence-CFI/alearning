@@ -49,6 +49,7 @@ class ALearnerE2E():
 
         self.temperature = temperature
         self.initial_temperature = temperature
+        self.alpha = alpha
         self.discount = discount
 
         self.w_values = defaultdict(float)
