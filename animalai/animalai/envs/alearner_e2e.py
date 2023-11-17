@@ -40,8 +40,8 @@ class ALearnerE2E():
 
     def __init__(self, n_actions, in_channels,
                  in_width, in_height, gpu=True,
-                 temperature=100, alpha=0.5,
-                 discount=0.1,
+                 temperature=100,
+                 discount=0.7,
                  model_file=None):
         self.in_channels = in_channels
         self.in_width = in_width
@@ -49,7 +49,6 @@ class ALearnerE2E():
 
         self.temperature = temperature
         self.initial_temperature = temperature
-        self.alpha = alpha
         self.discount = discount
 
         self.w_values = defaultdict(float)
@@ -249,16 +248,16 @@ class ALearnerE2E():
 
                 l1 = th.mean(
                     weights * self.criterion(w_values,
-                                             self.alpha * (w_vals + u_vals)
-                                             + self.discount *
-                                             (W_vals + U_vals))
+                                             self.discount *
+                                             th.max(w_vals + u_vals,
+                                                    W_vals + U_vals))
                 )
 
                 l2 = th.mean(
                     weights * self.criterion(sr_values,
-                                             self.alpha * (w_vals + u_vals)
-                                             + self.discount *
-                                             (W_vals + U_vals))
+                                             self.discount *
+                                             th.max(w_vals + u_vals,
+                                                    W_vals + U_vals))
                 )
                 loss = (l1 + l2) / 2
 
