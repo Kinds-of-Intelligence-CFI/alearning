@@ -186,7 +186,7 @@ class ALearnerE2E():
 
         self.trajectory = []
 
-    def do_training_round(self, data):
+    def do_training_round(self, data, future_discount=False):
         if self.use_target_value:
             aler = ALearningModel(self.in_channels,
                                   self.in_width,
@@ -246,19 +246,35 @@ class ALearnerE2E():
                 #         weights * self.criterion(sr_values, w_vals + u_vals)
                 #     )
 
-                l1 = th.mean(
-                    weights * self.criterion(w_values,
-                                             self.discount *
-                                             th.max(w_vals + u_vals,
-                                                    W_vals + U_vals))
-                )
+                if future_discount:
+                    l1 = th.mean(
+                        weights * self.criterion(w_values,
+                                                 self.discount * (
+                                                     W_vals + U_vals
+                                                 ))
+                    )
 
-                l2 = th.mean(
-                    weights * self.criterion(sr_values,
-                                             self.discount *
-                                             th.max(w_vals + u_vals,
-                                                    W_vals + U_vals))
-                )
+                    l2 = th.mean(
+                        weights * self.criterion(sr_values,
+                                                 self.discount * (
+                                                     W_vals + U_vals
+                                                 ))
+                    )
+                else:
+                    l1 = th.mean(
+                        weights * self.criterion(w_values,
+                                                 self.discount * (
+                                                     w_vals + u_vals
+                                                 ))
+                    )
+
+                    l2 = th.mean(
+                        weights * self.criterion(sr_values,
+                                                 self.discount * (
+                                                     w_vals + u_vals
+                                                 ))
+                    )
+
                 loss = (l1 + l2) / 2
 
                 self.optimiser.zero_grad()
