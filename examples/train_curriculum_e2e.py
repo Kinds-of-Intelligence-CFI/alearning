@@ -126,7 +126,6 @@ def run_agent_e2e(n_channels, width, height,
     old_reward = None
 
     use_estimates = False
-    future_discount = True
 
     n_reps = REPS[task]
     for k in range(n_reps):
@@ -201,7 +200,7 @@ def run_agent_e2e(n_channels, width, height,
                         last_point = None
                     extended_cand_data.append((d1, action, d2,
                                                weight, last_point))
-                data.extend(extended_cand_data[-N_DATAPOINTS:])
+                data.extend(extended_cand_data)
 
             window.append(found_green)
             if found_green:
@@ -240,10 +239,8 @@ def run_agent_e2e(n_channels, width, height,
                 #         train_data.extend(random_selection)
                 #     else:
                 #         train_data.extend(prev_data)
-                alearner.do_training_round(train_data,
-                                           future_discount=future_discount)
+                alearner.do_training_round(train_data)
                 # alearner.do_training_round(train_data, l1_loss=False)
-        future_discount = False
 
     print("Success rate = %.4f" % (total_green / total_episodes))
     env.close()
