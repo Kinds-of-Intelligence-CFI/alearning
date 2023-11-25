@@ -16,6 +16,7 @@ import matplotlib.pyplot as plt
 PUNISHMENT = -1
 WINDOW_SIZE = 80
 TRAIN_FREQUENCY = 10
+TRAIN_LIMIT = 50
 DATASET_LIMIT = 10000
 NUM_FRAMES = 4
 N_DATAPOINTS = 50
@@ -237,7 +238,10 @@ def run_agent_e2e(n_channels, width, height,
             window = window[-WINDOW_SIZE:]
             rolling_success_rate.append(sum(window) / len(window))
 
-            if total_episodes % TRAIN_FREQUENCY == 0:
+            if (
+                    total_episodes % TRAIN_FREQUENCY == 0
+                    and total_episodes <= TRAIN_LIMIT
+            ):
                 if len(data) > DATASET_LIMIT:
                     train_data = random.sample(data, DATASET_LIMIT)
                 else:
