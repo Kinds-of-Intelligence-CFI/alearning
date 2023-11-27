@@ -114,7 +114,6 @@ def run_agent_e2e(n_channels, width, height,
                     and total_episodes < CUT_OFF
                     and (total_episodes - TRAINING_EPISODES) % 20 == 0)
         ):
-            alearner.reset_temperature()
 
         # this corresponds to an episode
         while not done:
@@ -177,7 +176,6 @@ def run_agent_e2e(n_channels, width, height,
             window.append(found_green)
             if found_green:
                 total_green += 1
-        alearner.decrease_temperature()
 
         print("Episode %d" % total_episodes)
         alearner.print_max_stim_val()

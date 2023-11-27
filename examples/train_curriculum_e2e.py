@@ -12,25 +12,24 @@ import numpy as np
 import argparse
 import pickle
 import matplotlib.pyplot as plt
+from PIL import Image
 
 PUNISHMENT = -1
 WINDOW_SIZE = 80
-TRAIN_FREQUENCY = 10
-# TRAIN_LIMIT = 50
+TRAIN_LIMIT = 100
 DATASET_LIMIT = 10000
 NUM_FRAMES = 4
 N_DATAPOINTS = 50
+LENGTH_ACTION = 10
 
-N_TASKS = {
-    "task_type_1_2": 216,
-    "task_type_3_4": 993,
-    "task_type_5_6": 1030,
-    "task_type_7_8": 993
-}
 REPS = {
-    "task_type_1_2": 5,
+    "base_training": 50,
+    "task_type_1_2": 2,
+    "task_type_1_2_test": 2,
     "task_type_3_4": 1,
+    "task_type_3_4_test": 1,
     "task_type_5_6": 1,
+    "task_type_5_6_test": 1,
     "task_type_7_8": 1
 }
 TASK_FILE = "all_tasks.yml"
@@ -38,9 +37,13 @@ TASK_FILE = "all_tasks.yml"
 PROP_OLD_DATA = 0.2
 SAVE_PREV_DATA = 0.1
 
-# def save_first_frame(obs, episode):
-#     img = Image.fromarray(obs, 'RGB')
-#     img.save("debug/%d.png" % episode)
+
+def save_first_frame(obs, episode):
+    if not os.path.exists("debug"):
+        os.makedirs("debug")
+    img = Image.fromarray(obs, 'RGB')
+    img.save("debug/%d.png" % episode)
+
 
 def transpose_vector_obs(obs):
     # obs = np.expand_dims(obs, axis=0)
@@ -63,7 +66,10 @@ def normalise_obs(obs, mean, std, gpu=True):
 def run_agent_e2e(n_channels, width, height,
                   curriculum_dir,
                   model_file=None,
-                  gpu=True) -> None:
+                  test_freq=10,
+                  gpu=True,
+                  test=False,
+                  future=False) -> None:
     """
     Trains a-learning model with autoencoder on a set of training files
     and tests them on a set of test files
@@ -76,17 +82,23 @@ def run_agent_e2e(n_channels, width, height,
         mean = mean.to(0)
         std = std.to(0)
 
-    if not os.path.exists("e2e_plots"):
-        os.makedirs("e2e_plots")
+    base_dir = "all_results/test_freq=%d/future_discount=%d" \
+        % (test_freq, future)
+    if not os.path.exists(os.path.join(base_dir, "e2e_plots")):
+        os.makedirs(os.path.join(base_dir, "e2e_plots"))
+
+    if not os.path.exists(os.path.join(base_dir, "results_e2e")):
+        os.makedirs(os.path.join(base_dir, "results_e2e"))
 
     alearner = ALearnerE2E(7, n_channels, width, height,
-                           gpu=gpu, model_file=model_file)
+                           gpu=gpu, future=future,
+                           model_file=os.path.join(base_dir, model_file))
 
     components = curriculum_dir.split("/")
     if components[-1] == "":
-        task = components[-2]
+        task = components[-3] if not test else components[-2]
     else:
-        task = components[-1]
+        task = components[-2] if not test else components[-1]
 
     config_file = os.path.join(curriculum_dir, TASK_FILE)
     env = AnimalAIEnvironment(
@@ -102,13 +114,9 @@ def run_agent_e2e(n_channels, width, height,
     env = UnityToGymWrapper(env, uint8_visual=True, flatten_branched=True)
     env = gym.wrappers.FrameStack(env, NUM_FRAMES)
     print("Environment Loaded")
+
     total_green = 0
     total_episodes = 0
-
-    runs = []
-    total_success_rate = []
-    window = []
-    rolling_success_rate = []
 
     meta_data = None
     with open(
@@ -116,9 +124,33 @@ def run_agent_e2e(n_channels, width, height,
     ) as fin:
         meta_data = pickle.load(fin)
 
-    log_file = open(
-        os.path.join(curriculum_dir, 'results_e2e.csv'), "w"
-    )
+    train_tasks = None
+    test_tasks = None
+    if test:
+        total_tasks = meta_data[0]
+        meta_data = meta_data[1:]
+    else:
+        train_tasks = meta_data[0]
+        test_tasks = meta_data[1]
+        total_tasks = meta_data[2]
+        meta_data = meta_data[3:]
+
+    if test:
+        log_file = open(
+            os.path.join(base_dir, "results_e2e", "%s_testset.csv" % task), "w"
+        )
+    else:
+        log_file = open(
+            os.path.join(base_dir, "results_e2e", "%s_results.csv" % task), "w"
+        )
+    log_file.write("found_green,task_type,reward_size," +
+                   "left_right_of_agent,distance_from_agent_x," +
+                   "position_to_agent,distance_from_agent_z,platform_wall," +
+                   "x_z_wall_dimensions,wall_location_x,wall_location_z," +
+                   "platform_wall,x_z_wall_dimensions,wall_location_x," +
+                   "wall_location_z,platform_wall,x_z_wall_dimensions," +
+                   "wall_location_x,wall_location_z," +
+                   "agent_floor_plat,goal_floor_plat\n")
 
     data = []
     prev_stim = None
@@ -127,18 +159,36 @@ def run_agent_e2e(n_channels, width, height,
     old_reward = None
 
     use_estimates = True
+    test_runs = []
+    test_hit_rate = []
+    n_test_runs = 0
 
     n_reps = REPS[task]
     for k in range(n_reps):
 
-        if k > 1:
-            use_estimates = True
-        else:
-            alearner.reset_temperature()
-
         n_episodes = 0
-        while n_episodes < N_TASKS[task]:
+        n_train_episodes = 0
+        n_test_episodes = 0
+        test_green = 0
+        testing = False
+        while n_episodes < total_tasks:
+            if not test:
+                if testing:
+                    if n_test_episodes % test_tasks == 0:
+                        testing = False
+                        n_test_runs += 1
+                        hit_rate = test_green / test_tasks
+                        print("Test %d: hit rate = %.4f"
+                              % (n_test_runs, hit_rate))
+                        test_runs.append(n_test_runs)
+                        test_hit_rate.append(hit_rate)
+                elif ((n_episodes % (test_tasks + test_freq) == 0)
+                      or n_train_episodes >= train_tasks):
+                    testing = True
+                    n_test_episodes = 0
+                    test_green = 0
             obs = env.reset()
+            save_first_frame(obs[0], total_episodes)
             obs = transpose_vector_obs(obs)
             normalised_obs = normalise_obs(obs, mean, std, gpu=gpu)
             episode_ended = False
@@ -156,73 +206,70 @@ def run_agent_e2e(n_channels, width, height,
                     done = True
                     n_episodes += 1
                     total_episodes += 1
+                    if testing:
+                        n_test_episodes += 1
+                    else:
+                        n_train_episodes += 1
                 else:
                     stim, action = alearner.get_action(normalised_obs,
                                                        reward=reward)
                     stimuli.add(stim)
-                    res = env.step(action)
+                    for _ in range(LENGTH_ACTION):
+                        res = env.step(action)
+                        if res[2]:
+                            break
                     obs = res[0]
                     obs = transpose_vector_obs(obs)
                     normalised_obs = normalise_obs(obs, mean, std, gpu=gpu)
                     if not math.isclose(res[1], 0, abs_tol=1e-2):
                         reward = res[1]
                     else:
-                        reward = None
+                        reward = 0
                     episode_ended = res[2]
                     if episode_ended:
                         if reward is not None and reward > 0:
                             found_green = True
-                            reward = 1
-                            print("found green")
+                            print("found green | reward = %.2f" % reward)
 
-                    if prev_stim is not None:
-                        d1 = StimulusDatapoint(img=old_obs,
-                                               reward=old_reward)
+                    if not testing and not test:
+                        if prev_stim is not None:
+                            d1 = StimulusDatapoint(img=old_obs,
+                                                   reward=old_reward)
 
-                        if episode_ended and reward is not None:
-                            d2 = StimulusDatapoint(reward=reward)
-                        else:
-                            d2 = StimulusDatapoint(img=obs, reward=reward)
-                        cand_data.append((d1, prev_action, d2))
-                        last_point = d2
-                        # cand_data.append((d1, prev_action, d2, 1))
-                    prev_stim = stim
-                    prev_action = action
-                    old_obs = obs
-                    old_reward = reward
+                            if episode_ended and reward is not None:
+                                d2 = StimulusDatapoint(reward=reward)
+                            else:
+                                d2 = StimulusDatapoint(img=obs, reward=reward)
+                            cand_data.append((d1, prev_action, d2))
+                            last_point = d2
+                        prev_stim = stim
+                        prev_action = action
+                        old_obs = obs
+                        old_reward = reward
 
             print("Number of different stimuli = %d" % len(stimuli))
 
-            if episode_ended and (reward is not None or use_estimates):
-                extended_cand_data = []
-                # d1 = cand_data[0][0]
-                # i = 5
-                # while i < len(cand_data):
-                #     if i == len(cand_data) - 1:
-                #         last_point = None
-                #     action = cand_data[i][1]
-                #     d2 = cand_data[i][2]
-                #     extended_cand_data.append((d1, action, d2, 1, last_point))
-                #     d1 = d2
-                #     i += 5
+            if not testing and not test:
+                if episode_ended and (reward is not None or use_estimates):
+                    extended_cand_data = []
 
-                for i, (d1, action, d2) in enumerate(cand_data):
-                    weight = 1
-                    if i == len(cand_data) - 1:
-                        last_point = None
-                    extended_cand_data.append((d1, action, d2,
-                                               weight, last_point))
-                data.extend(extended_cand_data)
+                    for i, (d1, action, d2) in enumerate(cand_data):
+                        weight = 1 / (len(cand_data) - i)
+                        if i == len(cand_data) - 1:
+                            last_point = None
+                        extended_cand_data.append((d1, action, d2,
+                                                   weight, last_point))
+                    data.extend(extended_cand_data)
 
-            window.append(found_green)
             if found_green:
                 total_green += 1
-                alearner.exploit()
-            alearner.decrease_temperature()
-            if k == n_reps - 1:
+                if testing:
+                    test_green += 1
+
+            if testing or test:
                 line = ("%d," % found_green) + ",".join(
                     meta_data[n_episodes - 1]
-                ) + "/n"
+                ) + "\n"
                 log_file.write(line)
 
             print("Episode %d" % total_episodes)
@@ -230,49 +277,29 @@ def run_agent_e2e(n_channels, width, height,
 
             env.reset()
 
-            runs.append(total_episodes)
-            success_rate = total_green / total_episodes
-            total_success_rate.append(success_rate)
-            print("Success rate = %.4f" % success_rate)
-
-            window = window[-WINDOW_SIZE:]
-            rolling_success_rate.append(sum(window) / len(window))
-
-            if total_episodes % TRAIN_FREQUENCY == 0:
+            if not testing and not test and (
+                    n_train_episodes % test_freq == 0
+                    or n_train_episodes >= train_tasks
+            ):
                 if len(data) > DATASET_LIMIT:
                     train_data = random.sample(data, DATASET_LIMIT)
                 else:
                     train_data = data[:]
-                # if prev_data:
-                #     n_select = int(DATASET_LIMIT * PROP_OLD_DATA)
-                #     if len(prev_data) >= n_select:
-                #         random_selection = random.sample(prev_data,
-                #                                          n_select)
-                #         train_data.extend(random_selection)
-                #     else:
-                #         train_data.extend(prev_data)
                 alearner.do_training_round(train_data)
-                # alearner.do_training_round(train_data, l1_loss=False)
 
     print("Success rate = %.4f" % (total_green / total_episodes))
     env.close()
 
-    plt.plot(runs, total_success_rate)
-    plt.title("Total success rate")
-    plt.xlabel("total runs")
-    plt.ylabel("success rate")
-    plt.savefig(("e2e_plots/%s_success_rate.png") % task)
+    if testing:
+        plt.clf()
+        plt.scatter(test_runs, test_hit_rate)
+        plt.title("Test set success rate")
+        plt.xlabel("test run")
+        plt.ylabel("success rate")
+        plt.ylim(0, 1)
+        plt.savefig(os.path.join(base_dir, "e2e_plots",
+                                 "%s_test_hit_rate.png" % task))
 
-    plt.clf()
-    plt.plot(runs, rolling_success_rate)
-    plt.title("Rolling success rate (window size = 80)")
-    plt.xlabel("total runs")
-    plt.ylabel("rolling success rate")
-    plt.savefig(("e2e_plots/%s_rolling_success_rate.png") % task)
-
-    # n_select = int(SAVE_PREV_DATA * len(data))
-    # random_selection = random.sample(data, n_select)
-    # prev_data.extend(random_selection)
     log_file.close()
 
     alearner.save_model()
@@ -284,8 +311,11 @@ if __name__ == "__main__":
         description='Trains e2e alearning model on basic curriculum'
     )
     parser.add_argument('curriculum_dir', type=str)
+    parser.add_argument('test_freq', type=int, nargs='?', default=10)
     parser.add_argument('model_file', type=str, nargs='?', default='e2e.pt')
     parser.add_argument('--cpu', action='store_true')
+    parser.add_argument('--test', action='store_true')
+    parser.add_argument('--future', action='store_true')
     args = parser.parse_args()
     if args.cpu:
         gpu = False
@@ -296,4 +326,7 @@ if __name__ == "__main__":
                   height=84,
                   curriculum_dir=args.curriculum_dir,
                   model_file=args.model_file,
-                  gpu=gpu)
+                  test_freq=args.test_freq,
+                  gpu=gpu,
+                  test=args.test,
+                  future=args.future)

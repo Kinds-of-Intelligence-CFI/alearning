@@ -95,15 +95,6 @@ def run_agent_autoencoder(autoencoder_file: str,
         done = False
         reward = None
 
-        if (
-                (total_episodes <= TRAINING_EPISODES
-                 and total_episodes % 10 == 0)
-                or (total_episodes > TRAINING_EPISODES
-                    and total_episodes < CUT_OFF
-                    and (total_episodes - TRAINING_EPISODES) % 20 == 0)
-        ):
-            alearner.reset_temperature()
-
         # this corresponds to an episode
         while not done:
             obs = np.expand_dims(obs, axis=0)
@@ -174,7 +165,6 @@ def run_agent_autoencoder(autoencoder_file: str,
             window.append(found_green)
             if found_green:
                 total_green += 1
-        alearner.decrease_temperature()
 
         print("Episode %d | stimuli count: %d"
               % (total_episodes, len(all_stimuli)))

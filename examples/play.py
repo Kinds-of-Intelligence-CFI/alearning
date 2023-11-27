@@ -27,12 +27,12 @@ def load_config_and_play(configuration_file: str) -> None:
 
     # Run the environment until signal to it is lost
     try:
-        while environment._process:
-            continue
+        while True:
+            pass
     except KeyboardInterrupt:
-        pass
-    finally:
+        print("Closing environment...")
         environment.close()
+        sys.exit(0)
 
 
 # If an argument is provided then assume it is path to a configuration and use that

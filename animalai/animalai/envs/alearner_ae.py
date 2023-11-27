@@ -1,6 +1,5 @@
 from collections import defaultdict
 import numpy as np
-from scipy.special import softmax
 import random
 from itertools import groupby
 
@@ -9,11 +8,10 @@ class ALearnerAE():
     """Implements the A-learning algorithm
     Can change the number of rays but only responds to GOODGOALs, GOODGOALMULTI and BADGOAL"""
 
-    def __init__(self, n_actions, alpha_w=0.5, alpha_v=0.5, temperature=100):
+    def __init__(self, n_actions, alpha_w=0.5, alpha_v=0.5, epsilon=0.8):
         self.alpha_w = alpha_w
         self.alpha_v = alpha_v
-        self.temperature = temperature
-        self.initial_temperature = temperature
+        self.epsilon = epsilon
 
         self.w_values = defaultdict(float)
         self.sr_values = defaultdict(float)
@@ -38,19 +36,15 @@ class ALearnerAE():
             map(lambda k: self.sr_values[k], all_keys),
             dtype=float
         )
-        probs = softmax(all_sr_values / self.temperature)
-        draw = random.random()
-        action = 0
-        cum_prob = 0
-        for prob in probs:
-            cum_prob += prob
-            if draw <= cum_prob:
-                break
-            # this checks the edge case when there are rounding errors
-            if action < self.n_actions - 1:
-                action += 1
 
+        draw = random.random()
+        if draw <= self.epsilon:
+            max_idx = np.argmax(all_sr_values)
+            action = all_keys[max_idx][1]
+        else:
+            action = random.randrange(0, self.n_actions)
         self.trajectory.append((self.prev_stim, action))
+
         return action
 
     def update_stimulus_values(self, final_stim):
@@ -80,18 +74,7 @@ class ALearnerAE():
             next_stim = stim
         self.trajectory = []
 
-    def decrease_temperature(self):
-        if self.temperature > 10:
-            self.temperature -= 10
-        else:
-            self.temperature = 1
-
-    def exploit(self):
-        self.temperature = 1
-
-    def reset_temperature(self):
-        self.temperature = self.initial_temperature
-
     def print_max_stim_val(self):
-        max_stim_value = max(self.w_values.values())
-        print("Max stimulus value: %.4f" % max_stim_value)
+        if self.w_values:
+            max_stim_value = max(self.w_values.values())
+            print("Max stimulus value: %.4f" % max_stim_value)

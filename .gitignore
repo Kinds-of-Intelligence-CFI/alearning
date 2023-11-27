@@ -27,3 +27,4 @@ test_images/
 **/all_tasks.yml
 configs/basic_curriculum/task_type_1_2/
 *.csv
+examples/all_results/

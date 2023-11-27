@@ -1,6 +1,8 @@
 from torch.utils.data import Dataset
 import torch as th
 
+N_STIMULI = 30
+
 
 class E2EDataset(Dataset):
     def __init__(self, data, aler, n_actions, gpu=True,
@@ -27,9 +29,11 @@ class E2EDataset(Dataset):
                 img2 = img2[None, :]
                 if self.gpu:
                     img2 = img2.to(0)
-                stim = self.aler(img2)
-                w_val = th.tensor([self.aler(stimulus=stim)[0][0]])
+                next_stim = self.aler(img2)
+                w_val = th.tensor([self.aler(stimulus=next_stim)[0][0]])
+                next_stim = next_stim[0]
         else:
+            next_stim = th.zeros(N_STIMULI)
             w_val = th.tensor([0])
 
         img = sample[0].img
@@ -60,11 +64,14 @@ class E2EDataset(Dataset):
         if self.gpu:
             img = img.to(0)
             action = action.to(0)
+            next_stim = next_stim.to(0)
             w_val = w_val.to(0)
             u_val = u_val.to(0)
             weight = weight.to(0)
             W_val = W_val.to(0)
             U_val = U_val.to(0)
 
-        return img, action, w_val, u_val, weight, W_val, U_val
-        # return img, action, w_val, u_val
+        return img, action, next_stim, w_val, u_val, weight, W_val, U_val
+
+    def update_aler(self, aler):
+        self.aler = aler

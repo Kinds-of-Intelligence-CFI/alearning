@@ -130,7 +130,6 @@ def run_agent_autoencoder(autoencoder_file: str,
 
         print("Stimuli count: %d" % len(all_stimuli))
         env.reset()
-        alearner.decrease_temperature()
 
     env.close()
     print("Environment Closed")

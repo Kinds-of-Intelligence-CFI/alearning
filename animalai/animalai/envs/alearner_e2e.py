@@ -6,11 +6,9 @@ from collections import defaultdict
 import numpy as np
 import torch as th
 import torch.nn as nn
-import torch.nn.functional as F
 from torch.utils.data import DataLoader
-from scipy.special import softmax
+# from scipy.special import softmax
 import random
-from itertools import groupby
 import os
 
 
@@ -40,16 +38,25 @@ class ALearnerE2E():
 
     def __init__(self, n_actions, in_channels,
                  in_width, in_height, gpu=True,
-                 temperature=100,
-                 discount=0.7,
+                 discount=0.5,
+                 future_discount=0.5,
+                 epsilon=0.8,
+                 future=False,
                  model_file=None):
         self.in_channels = in_channels
         self.in_width = in_width
         self.in_height = in_height
 
-        self.temperature = temperature
-        self.initial_temperature = temperature
-        self.discount = discount
+        self.future = future
+
+        if self.future:
+            self.discount = 0
+            self.future_discount = future_discount
+        else:
+            self.discount = discount
+            self.future_discount = 0
+
+        self.epsilon = epsilon
 
         self.w_values = defaultdict(float)
         self.sr_values = defaultdict(float)
@@ -74,12 +81,13 @@ class ALearnerE2E():
                             map_location=th.device('cpu')
                             ))
 
-        self.optimiser = th.optim.Adam(self.aler.parameters(), lr=0.001,
-                                       weight_decay=1e-5)
-        # self.optimiser = th.optim.SGD(self.aler.parameters(), lr=0.01,
-        #                               momentum=0.9, nesterov=True)
+        # self.optimiser = th.optim.Adam(self.aler.parameters(), lr=0.001,
+        #                                weight_decay=1e-5)
+        self.optimiser = th.optim.SGD(self.aler.parameters(), lr=0.01,
+                                      momentum=0.9, nesterov=True)
         # self.criterion = nn.MSELoss()
         self.criterion = nn.MSELoss(reduction='none')
+        # self.cross_entropy = nn.BCELoss()
 
     def reset_optimiser(self):
         self.optimiser = th.optim.Adam(self.aler.parameters(), lr=0.001,
@@ -94,7 +102,7 @@ class ALearnerE2E():
     def get_stimulus(self, obs):
         return self.aler(obs)
 
-    def get_action(self, obs, reward=None) -> int:
+    def get_action(self, obs, reward=None, print_probs=False) -> int:
         """Returns the action to take given the current observation"""
         with th.no_grad():
             stim = self.aler(obs)
@@ -116,19 +124,13 @@ class ALearnerE2E():
             map(lambda k: self.sr_values[k], all_keys),
             dtype=float
         )
-        probs = softmax(all_sr_values / self.temperature)
+
         draw = random.random()
-        action = 0
-        cum_prob = 0
-        for prob in probs:
-            cum_prob += prob
-            if draw <= cum_prob:
-                break
-            # this checks the edge case when there are rounding errors
-            if action < self.n_actions - 1:
-                action += 1
-        # max_idx = np.argmax(all_sr_values)
-        # action = all_keys[max_idx][1]
+        if draw <= self.epsilon:
+            max_idx = np.argmax(all_sr_values)
+            action = all_keys[max_idx][1]
+        else:
+            action = random.randrange(0, self.n_actions)
 
         return stim, action
 
@@ -161,8 +163,9 @@ class ALearnerE2E():
         print("\ndoing training round")
         for i in range(self.n_epochs):
             total_loss = 0
+            # total_l3 = 0
             steps = 0
-            for (imgs, actions, w_vals, u_vals,
+            for (imgs, actions, next_stim, w_vals, u_vals,
                  weights, W_vals, U_vals) in iter(loader):
             # for imgs, actions, w_vals, u_vals in iter(loader):
                 stimuli = self.aler(imgs)
@@ -170,47 +173,76 @@ class ALearnerE2E():
                 w_values = output[:, [0]]
                 sr_values = th.gather(output, 1, (actions+1))
 
-                l1 = th.mean(
-                    weights * self.criterion(w_values,
-                                             self.discount *
-                                             th.max(w_vals + u_vals,
-                                                    W_vals + U_vals))
-                )
+                mask = (stimuli.detach().clone() != next_stim).any(dim=1)
 
-                l2 = th.mean(
-                    weights * self.criterion(sr_values,
-                                             self.discount *
-                                             th.max(w_vals + u_vals,
-                                                    W_vals + U_vals))
-                )
-                loss = (l1 + l2) / 2
+                # l1 = th.mean(weights[mask] *
+                #              self.criterion(w_values[mask],
+                #                             self.discount *
+                #                             th.max(w_vals[mask] + u_vals[mask],
+                #                                    W_vals[mask] + U_vals[mask])
+                #                             ))
+                l1 = th.mean(weights[mask] *
+                             self.criterion(w_values[mask],
+                                            self.discount *
+                                            (w_vals[mask] + u_vals[mask])
+                                            + self.future_discount *
+                                            (W_vals[mask] + U_vals[mask])))
+
+                # l2 = th.mean(weights *
+                #              self.criterion(sr_values,
+                #                             self.discount *
+                #                             th.max(w_vals + u_vals,
+                #                                    W_vals + U_vals)))
+                l2 = th.mean(weights *
+                             self.criterion(sr_values,
+                                            self.discount *
+                                            (w_vals + u_vals)
+                                            + self.future_discount *
+                                            (W_vals + U_vals)))
+
+                if not th.isnan(l1):
+                    loss = l1 / self.n_actions + l2
+                else:
+                    loss = l2
 
                 self.optimiser.zero_grad()
                 loss.backward()
+
+                # nn.utils.clip_grad_norm_(self.aler.parameters(), 0.01)
                 self.optimiser.step()
 
                 total_loss += loss.item()
+                # total_l3 += l3.item()
                 steps += 1
             print("epoch %d | loss = %.4e" % (i+1, total_loss / steps))
+            # print("epoch %d | l3 = %.4e" % (i+1, total_l3 / steps))
+
+            if self.use_target_value:
+                aler = ALearningModel(self.in_channels,
+                                      self.in_width,
+                                      self.in_height)
+                if self.gpu:
+                    aler = aler.to(0)
+                aler.load_state_dict(self.aler.state_dict())
+                dataset.update_aler(aler)
         print("\n")
 
-    def decrease_temperature(self):
-        if self.temperature > 10:
-            self.temperature -= 10
+        if self.n_epochs < 10:
+            self.n_epochs += 1
+
+        if self.discount < 0.5:
+            self.discount += 0.1
         else:
-            self.temperature = 1
-
-    def exploit(self):
-        self.temperature = 1
-
-    def reset_temperature(self):
-        self.temperature = self.initial_temperature
+            self.discount = 0.5
 
     def print_max_stim_val(self):
         max_stim_value = max(self.w_values.values())
+        min_stim_value = min(self.w_values.values())
         max_sr_value = max(self.sr_values.values())
-        print("Max stimulus value: %.4f" % max_stim_value)
-        print("Max S-R value: %.4f" % max_sr_value)
+        min_sr_value = min(self.sr_values.values())
+        print("Stimulus values: [%.4f, %.4f]" %
+              (min_stim_value, max_stim_value))
+        print("S-R values: [%.4f, %.4f]" % (min_sr_value, max_sr_value))
 
     def save_model(self):
         th.save(self.aler.state_dict(), self.model_file)
