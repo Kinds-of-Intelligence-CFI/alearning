@@ -167,7 +167,7 @@ class ALearnerE2E():
             # for imgs, actions, w_vals, u_vals in iter(loader):
                 stimuli = self.aler(imgs)
                 output = self.aler(stimulus=stimuli)
-                w_values = output[:, 0]
+                w_values = output[:, [0]]
                 sr_values = th.gather(output, 1, (actions+1))
 
                 l1 = th.mean(
