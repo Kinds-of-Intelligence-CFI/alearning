@@ -19,11 +19,6 @@ class E2EDataset(Dataset):
     def __getitem__(self, idx):
         sample = self.data[idx]
 
-        onehot_actions = [F.one_hot(th.tensor([a]),
-                                    num_classes=self.n_actions)
-                          for a in range(self.n_actions)]
-        if self.gpu:
-            onehot_actions = list(map(lambda x: x.to(0), onehot_actions))
         u_val = th.tensor([sample[2].u_val]).float()
         img2 = sample[2].img
         if img2 is not None:
@@ -34,14 +29,12 @@ class E2EDataset(Dataset):
                 if self.gpu:
                     img2 = img2.to(0)
                 stim = self.aler(img2)
-                w_val = self.aler(stimulus=stim)[0][0]
-                # w_val = max([self.aler(stimulus=stim, onehot_action=a)[1][0]
-                #              for a in onehot_actions])
+                w_val = th.tensor([self.aler(stimulus=stim)[0][0]])
         else:
             w_val = th.tensor([0])
 
         img = sample[0].img
-        action = F.one_hot(th.tensor(sample[1]), num_classes=self.n_actions)
+        action = th.tensor([sample[1]])
         if self.train_transform:
             img = self.train_transform(img)
 
@@ -58,7 +51,7 @@ class E2EDataset(Dataset):
                     if self.gpu:
                         img_last = img_last.to(0)
                     stim = self.aler(img_last)
-                    W_val = self.aler(stimulus=stim)[0][0]
+                    W_val = th.tensor([self.aler(stimulus=stim)[0][0]])
             else:
                 W_val = th.tensor([0])
         else:

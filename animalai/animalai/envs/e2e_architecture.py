@@ -114,32 +114,10 @@ class ALearningModel(nn.Module):
             nn.LayerNorm(N_STIMULI),
             nn.LogSoftmax(dim=1)
         )
-        # self.stimulus_output = nn.Sequential(
-        #     nn.Linear(N_HIDDEN_FEATURES, OUTPUT_SIZE),
-        #     nn.Tanh()
-        # )
 
-        # self.lhs = nn.Sequential(
-        #     # nn.Linear(N_STIMULI, N_STIMULI),
-        #     # nn.ReLU(),
-        #     # nn.Linear(OUTPUT_SIZE, OUTPUT_SIZE),
-        #     # nn.ReLU(),
-        #     nn.Linear(N_STIMULI, 1)
-        #     # nn.Linear(OUTPUT_SIZE, 1)
-        # )
-        self.lhs = nn.Linear(N_STIMULI, 1)
-        # self.lhs = nn.Linear(OUTPUT_SIZE, 1)
-
-        # self.rhs = nn.Sequential(
-        #     # nn.Linear(N_STIMULI + N_ACTIONS, N_STIMULI + N_ACTIONS),
-        #     # nn.ReLU(),
-        #     # nn.Linear(OUTPUT_SIZE + N_ACTIONS, OUTPUT_SIZE + N_ACTIONS),
-        #     # nn.ReLU(),
-        #     nn.Linear(N_STIMULI + N_ACTIONS, 1)
-        #     # nn.Linear(OUTPUT_SIZE + N_ACTIONS, 1)
-        # )
-        self.rhs = nn.Linear(N_STIMULI + N_ACTIONS, 1)
-        # self.rhs = nn.Linear(OUTPUT_SIZE + N_ACTIONS, 1)
+        # self.lhs = nn.Linear(N_STIMULI, 1)
+        # self.rhs = nn.Linear(N_STIMULI + N_ACTIONS, 1)
+        self.output = nn.Linear(N_STIMULI, 1 + N_ACTIONS)
 
     def forward(self, *args, **kwds):
         if len(args) == 1:
@@ -150,17 +128,9 @@ class ALearningModel(nn.Module):
             stimulus = F.gumbel_softmax(self.softmax_layer(encoded))
             # stimulus = self.stimulus_output(encoded)
             return stimulus
-        elif len(args) == 0 and len(kwds) >= 1:
+        elif len(args) == 0 and len(kwds) == 1:
             stimulus = kwds["stimulus"]
-
-            w_value = self.lhs(stimulus)
-            sr_value = None
-            if "onehot_action" in kwds:
-                onehot_action = kwds["onehot_action"]
-                cated = th.cat([stimulus, onehot_action], dim=1)
-                sr_value = self.rhs(cated)
-
-            return w_value, sr_value
+            return self.output(stimulus)
         else:
             sys.stderr.write("incorrect arguments supplied to a-learning model")
             sys.exit(1)

@@ -99,16 +99,10 @@ class ALearnerE2E():
         with th.no_grad():
             stim = self.aler(obs)
             stim = StimulusE2E(stim, reward=reward)
-            w_value, _ = self.aler(stimulus=stim.stimulus)
-            self.w_values[stim] = w_value.item()
+            output = self.aler(stimulus=stim.stimulus)
+            self.w_values[stim] = output[0].item()
             for a in range(self.n_actions):
-                onehot_action = F.one_hot(th.tensor([a]),
-                                          num_classes=self.n_actions)
-                if self.gpu:
-                    onehot_action = onehot_action.to(0)
-                _, sr_value = self.aler(stimulus=stim.stimulus,
-                                        onehot_action=onehot_action)
-                self.sr_values[(stim, a)] = sr_value.item()
+                self.sr_values[(stim, a)] = output[a+1].item()
             # self.w_values[stim] = max([self.sr_values[(stim, a)]
             #                            for a in range(self.n_actions)
             #                            ])
@@ -137,54 +131,6 @@ class ALearnerE2E():
         # action = all_keys[max_idx][1]
 
         return stim, action
-
-    def update_stimulus_values(self, final_stim):
-        groups = []
-
-        for k, group in groupby(self.trajectory,
-                                key=lambda x: hash(tuple(
-                                    # x[0].onehot.detach().clone()[0].tolist()
-                                    x[0].onehot.tolist()
-                                ))):
-            group = list(group)
-            group.reverse()
-            groups.append(group[0])
-
-        groups.reverse()
-
-        mean_loss = None
-        target_value = th.tensor([[final_stim.u_val]]).float()
-        if self.gpu:
-            target_value = target_value.to(0)
-        for stim, action in groups:
-            onehot_action = F.one_hot(th.tensor([action]),
-                                      num_classes=self.n_actions)
-
-            w_value, sr_value = self.aler(stimulus=stim.stimulus,
-                                          onehot_action=onehot_action)
-            self.w_values[stim] = w_value.item()
-            l1 = self.criterion(w_value, target_value)
-
-            self.sr_values[(stim, action)] = sr_value.item()
-            l2 = self.criterion(sr_value, target_value)
-
-            loss = l1 + l2
-            if mean_loss is not None:
-                mean_loss += loss
-            else:
-                mean_loss = loss
-
-            target_value = w_value.detach().clone()
-
-        mean_loss /= len(groups)
-
-        self.optimiser.zero_grad()
-        mean_loss.backward()
-        self.optimiser.step()
-
-        print("Total loss = %.4e" % mean_loss.item())
-
-        self.trajectory = []
 
     def do_training_round(self, data):
         if self.use_target_value:
@@ -220,8 +166,9 @@ class ALearnerE2E():
                  weights, W_vals, U_vals) in iter(loader):
             # for imgs, actions, w_vals, u_vals in iter(loader):
                 stimuli = self.aler(imgs)
-                w_values, sr_values = self.aler(stimulus=stimuli,
-                                                onehot_action=actions)
+                output = self.aler(stimulus=stimuli)
+                w_values = output[:, 0]
+                sr_values = th.gather(output, 1, (actions+1))
 
                 l1 = th.mean(
                     weights * self.criterion(w_values,
