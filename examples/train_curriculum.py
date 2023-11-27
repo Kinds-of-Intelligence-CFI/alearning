@@ -28,7 +28,12 @@ N_TASKS = {
 }
 REPS = {
     "task_type_1_2": 4,
-    "task_type_3_4": 1,
+    "task_type_3_GR_Platform_2x9_HC": 1,
+    "task_type_3_GR_Platform_9x9_HC": 1,
+    "task_type_3_GR_Platform_4x4_HC": 1,
+    "task_type_4_GR_Platform_20x20_FA": 1,
+    "task_type_4_GR_Platform_9x9_FA": 1,
+    "task_type_4_GR_Platform_3x40_FA": 1,
     "task_type_5_6": 1,
     "task_type_7_8": 1
 }
