@@ -1,6 +1,5 @@
 from torch.utils.data import Dataset
 import torch as th
-import torch.nn.functional as F
 
 
 class E2EDataset(Dataset):

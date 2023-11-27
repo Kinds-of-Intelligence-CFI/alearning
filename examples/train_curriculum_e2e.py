@@ -195,23 +195,23 @@ def run_agent_e2e(n_channels, width, height,
 
             if episode_ended and (reward is not None or use_estimates):
                 extended_cand_data = []
-                d1 = cand_data[0][0]
-                i = 5
-                while i < len(cand_data):
-                    if i == len(cand_data) - 1:
-                        last_point = None
-                    action = cand_data[i][1]
-                    d2 = cand_data[i][2]
-                    extended_cand_data.append((d1, action, d2, 1, last_point))
-                    d1 = d2
-                    i += 5
-
-                # for i, (d1, action, d2) in enumerate(cand_data):
-                #     weight = 1
+                # d1 = cand_data[0][0]
+                # i = 5
+                # while i < len(cand_data):
                 #     if i == len(cand_data) - 1:
                 #         last_point = None
-                #     extended_cand_data.append((d1, action, d2,
-                #                                weight, last_point))
+                #     action = cand_data[i][1]
+                #     d2 = cand_data[i][2]
+                #     extended_cand_data.append((d1, action, d2, 1, last_point))
+                #     d1 = d2
+                #     i += 5
+
+                for i, (d1, action, d2) in enumerate(cand_data):
+                    weight = 1
+                    if i == len(cand_data) - 1:
+                        last_point = None
+                    extended_cand_data.append((d1, action, d2,
+                                               weight, last_point))
                 data.extend(extended_cand_data)
 
             window.append(found_green)

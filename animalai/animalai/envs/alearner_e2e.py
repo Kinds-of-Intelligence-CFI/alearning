@@ -100,9 +100,9 @@ class ALearnerE2E():
             stim = self.aler(obs)
             stim = StimulusE2E(stim, reward=reward)
             output = self.aler(stimulus=stim.stimulus)
-            self.w_values[stim] = output[0].item()
+            self.w_values[stim] = output[0][0].item()
             for a in range(self.n_actions):
-                self.sr_values[(stim, a)] = output[a+1].item()
+                self.sr_values[(stim, a)] = output[0][a+1].item()
             # self.w_values[stim] = max([self.sr_values[(stim, a)]
             #                            for a in range(self.n_actions)
             #                            ])
