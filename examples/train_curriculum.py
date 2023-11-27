@@ -17,7 +17,12 @@ START_CATEGORIES = 10
 WINDOW_SIZE = 80
 N_TASKS = {
     "task_type_1_2": 216,
-    "task_type_3_4": 993,
+    "task_type_3_GR_Platform_2x9_HC": 324,
+    "task_type_3_GR_Platform_9x9_HC": 108,
+    "task_type_3_GR_Platform_4x4_HC": 972,
+    "task_type_4_GR_Platform_20x20_FA": 432,
+    "task_type_4_GR_Platform_9x9_FA": 432,
+    "task_type_4_GR_Platform_3x40_FA": 216,
     "task_type_5_6": 1030,
     "task_type_7_8": 993
 }
